@@ -1,5 +1,5 @@
 # My wezterm configuration
-## I've found how flexible wezterm is and decided to try to have some fun with it. I've just scratched the surface of what wezterm can do, but it's been a lot of fun learning what it can do.
+## I've found how flexible wezterm is and decided to try to have some fun with it. I've just scratched the surface of what wezterm can do, but it's been a lot of fun learning.
 
 ## Requirements
 * wezterm on either Darwin or Linux. I don't have a Windows computer to test on.
