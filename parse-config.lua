@@ -4,7 +4,7 @@ local util = require "util"
 config_parser = {}
 
 function config_parser.get_config()
-    -- set some defaults
+    -- default config
     local config = {
         display = {
             font_size = 14,
@@ -26,7 +26,7 @@ function config_parser.get_config()
         status_bar = {
             update_interval = 3,
             system_status = {
-                disk_list = {},
+                disk_list = {{mount_point = "/", unit = "Gi"}},
                 enabled = true,
                 network_interface_list = {},
                 toggles = {
@@ -64,21 +64,11 @@ function config_parser.get_config()
         config["os_name"] = "linux"
     end
 
-    -- override based on hostname
-    if wezterm.hostname() == "macos-GW04C1YJXF" then
-        config["display"]["color_scheme"]["enable_gradient"] = true
-        config["status_bar"]["stock_quotes"]["symbols"] = {"INTU"}
-        config["status_bar"]["system_status"]["disk_list"] = {{mount_point = "/", unit = "Gi"}}
-        config["status_bar"]["system_status"]["network_interface_list"] = {"en0"}
-    elseif wezterm.hostname() == "gdanko-linux" then
-        config["display"]["font_size"] = 12
-        config["display"]["color_scheme"]["enable_gradient"] = true
-        config["status_bar"]["stock_quotes"]["symbols"] = {"INTU"}
-        config["status_bar"]["system_status"]["disk_list"] = {{mount_point = "/", unit = "Gi"}, {mount_point = "/work", unit = "Ti"}}
-        config["status_bar"]["system_status"]["network_interface_list"] = {"wlo1"}
-
-
+    if util.file_exists( util.path_join({wezterm.config_dir, "overrides.lua"})) then
+        overrides = require "overrides"
+        config = overrides.override_config(config)
     end
+
     return config
 end
 
