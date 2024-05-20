@@ -26,6 +26,7 @@ Clone the repository at the root of ~/.config. Pro tip, I use Dropbox so I can u
   * Memory Usage
   * Disk Usage
   * Network Throughput
+* Tab title can be process name (default) or cwd
 
 ## To-Do
 * Alphabetize the stocks in the status bar. They're rendered out of order sometimes.
