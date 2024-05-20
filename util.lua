@@ -26,12 +26,12 @@ function string_split(inputstr, sep)
     return t
 end
 
-function split_to_lines(inputstr)
-    local output = {}
-    for line in inputstr:gmatch("([^\n]*)\n?") do
-        table.insert(output, line)
+function get_cwd(pane)
+    local cwd_uri = pane:get_current_working_dir()
+    if cwd_uri then
+        return cwd_uri.file_path
     end
-    return output
+    return nil
 end
 
 function path_join(path_bits)
@@ -143,6 +143,7 @@ util.byte_converter = byte_converter
 util.duration = duration
 util.execute_command = execute_command
 util.file_exists = file_exists
+util.get_cwd = get_cwd
 util.get_timestamp = get_timestamp
 util.has_value = has_value
 util.json_parse = json_parse
