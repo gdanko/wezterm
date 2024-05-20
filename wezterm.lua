@@ -7,7 +7,6 @@ local config_parser = require "parse-config"
 local act = wezterm.action
 
 local user_config = config_parser.get_config()
--- wezterm.log_info(config)
 
 -- Enable/disable config blocks
 config_appearance_enabled           = true
@@ -245,7 +244,6 @@ wezterm.on("format-tab-title", function(tab, tabs, panes, config, hover, max_wid
     local title = util.basename(pane.foreground_process_name)
     local cwd = nil
     
-    wezterm.log_info(user_config)
     if user_config["tabs"]["title_is_cwd"] then
         local cwd_uri = pane.current_working_dir
         if cwd_uri then

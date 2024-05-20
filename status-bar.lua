@@ -21,36 +21,77 @@ function status_bar.update_status_bar(cwd)
     if config["status_bar"]["toggles"]["show_battery"] then
         local icon = ""
         for _, b in ipairs(wezterm.battery_info()) do
-          soc = b.state_of_charge * 100
-        end
-        if soc == 100 then
-            icon = wezterm.nerdfonts.md_battery
-        elseif soc < 100 and soc > 89 then
-            icon = wezterm.nerdfonts.md_battery_90
-        elseif soc < 90 and soc > 79 then
-            icon = wezterm.nerdfonts.md_battery_80
-        elseif soc < 80 and soc > 69 then
-            icon = wezterm.nerdfonts.md_battery_70
-        elseif soc < 70 and soc > 59 then
-            icon = wezterm.nerdfonts.md_battery_60
-        elseif soc < 60 and soc > 49 then
-            icon = wezterm.nerdfonts.md_battery_50
-        elseif soc < 50 and soc > 39 then
-            icon = wezterm.nerdfonts.md_battery_40
-        elseif soc < 40 and soc > 29 then
-            icon = wezterm.nerdfonts.md_battery_30
-        elseif soc < 30 and soc > 19 then
-            icon = wezterm.nerdfonts.md_battery_20
-        elseif soc < 20 and soc > 9 then
-            icon = wezterm.nerdfonts.md_battery_10
-        elseif soc < 10 and soc > 0 then
-            icon = wezterm.nerdfonts.md_battery_10
-        elseif soc < 10 then
-            icon = wezterm.nerdfonts.md_battery_alert
-        end
+            soc = b.state_of_charge * 100
+            state = b.state
 
-        bat = icon .. " " .. string.format('%.0f%%', soc)
-        table.insert(cells, util.pad_string(1, 1, bat))
+            if soc == 100 then
+                -- It's still plugged in even though it's full
+                if state == "Charging" or state == "Full" then
+                    icon = wezterm.nerdfonts.md_battery_charging
+                else
+                    icon = wezterm.nerdfonts.md_battery
+                end
+            elseif soc < 100 and soc > 89 then
+                if state == "Charging" then
+                    icon = wezterm.nerdfonts.md_battery_charging_90
+                else
+                    icon = wezterm.nerdfonts.md_battery_90
+                end
+            elseif soc < 90 and soc > 79 then
+                if state == "Charging" then
+                    icon = wezterm.nerdfonts.md_battery_charging_80
+                else
+                    icon = wezterm.nerdfonts.md_battery_80
+                end
+            elseif soc < 80 and soc > 69 then
+                if state == "Charging" then
+                    icon = wezterm.nerdfonts.md_battery_charging_70
+                else
+                    icon = wezterm.nerdfonts.md_battery_70
+                end
+            elseif soc < 70 and soc > 59 then
+                if state == "Charging" then
+                    icon = wezterm.nerdfonts.md_battery_charging_60
+                else
+                    icon = wezterm.nerdfonts.md_battery_60
+                end
+            elseif soc < 60 and soc > 49 then
+                if state == "Charging" then
+                    icon = wezterm.nerdfonts.md_battery_charging_50
+                else
+                    icon = wezterm.nerdfonts.md_battery_50
+                end
+            elseif soc < 50 and soc > 39 then
+                if state == "Charging" then
+                    icon = wezterm.nerdfonts.md_battery_charging_40
+                else
+                    icon = wezterm.nerdfonts.md_battery_40
+                end
+            elseif soc < 40 and soc > 29 then
+                if state == "Charging" then
+                    icon = wezterm.nerdfonts.md_battery_charging_30
+                else
+                    icon = wezterm.nerdfonts.md_battery_30
+                end
+            elseif soc < 30 and soc > 19 then
+                if state == "Charging" then
+                    icon = wezterm.nerdfonts.md_battery_charging_20
+                else
+                    icon = wezterm.nerdfonts.md_battery_20
+                end
+            elseif soc < 20 and soc > 9 then
+                if state == "Charging" then
+                    icon = wezterm.nerdfonts.md_battery_charging_10
+                else
+                    icon = wezterm.nerdfonts.md_battery_10
+                end
+            else
+                icon = wezterm.nerdfonts.md_battery_alert
+            end
+
+            bat = icon .. " " .. string.format('%.0f%%', soc)
+            table.insert(cells, util.pad_string(1, 1, bat))
+        end
     end
 
     -- cwd and github stuff will go here
@@ -123,7 +164,7 @@ function status_bar.update_status_bar(cwd)
         if values ~= nil then
             -- check for freshness
             if (util.get_timestamp() - values["timestamp"]) > 5 then
-                table.insert(cells, util.pad_string(2, 2, "wsstats data is stale, please verify it's still running"))
+                table.insert(cells, util.pad_string(2, 2, wezterm.nerdfonts.cod_bug .. " wsstats data is stale, please verify it's still running"))
             else
                 if config["status_bar"]["system_status"]["toggles"]["show_uptime"] then
                     if values["host"] ~= nil and values["host"]["information"] ~= nil then
@@ -164,7 +205,7 @@ function status_bar.update_status_bar(cwd)
                         load15 = string.format("%.2f", values["load"]["load15"])
                         load_averages = "Load: " .. load1 .. ", " .. load5 .. ", " .. load15
                     else
-                        load_averages = wezterm.nerdfonts.cod_bug .. "Failed to get load averages"
+                        load_averages = wezterm.nerdfonts.cod_bug .. " Failed to get load averages"
                     end
                     table.insert(cells, util.pad_string(2, 2, load_averages))
                 end
