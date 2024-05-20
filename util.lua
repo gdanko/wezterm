@@ -36,6 +36,14 @@ function get_cwd(pane)
     return nil
 end
 
+function basename(path)
+    return string.gsub(path, "(.*/)(.*)", "%2")
+end
+
+function dirname(path)
+    return string.gsub(path, "(.*/)(.*)", "%1")
+end
+
 function path_join(path_bits)
     return table.concat(path_bits, "/")
 end
@@ -141,7 +149,9 @@ function duration(seconds)
     return days, hours, minutes, secs
 end
 
+util.basename = basename
 util.byte_converter = byte_converter
+util.dirname = dirname
 util.duration = duration
 util.execute_command = execute_command
 util.file_exists = file_exists
