@@ -6,7 +6,8 @@ local config_parser = require "parse-config"
 
 local act = wezterm.action
 
-config = config_parser.get_config()
+local user_config = config_parser.get_config()
+-- wezterm.log_info(config)
 
 -- Enable/disable config blocks
 config_appearance_enabled           = true
@@ -20,8 +21,8 @@ config_tabs_enabled                 = true
 config_test_enabled                 = true
 
 color_scheme_map = color_config.get_color_scheme(
-    config["display"]["color_scheme"]["scheme_name"],
-    config["display"]["color_scheme"]["randomize_color_scheme"]
+    user_config["display"]["color_scheme"]["scheme_name"],
+    user_config["display"]["color_scheme"]["randomize_color_scheme"]
 )
 
 local config_appearance = {
@@ -35,19 +36,19 @@ local config_appearance = {
     --     balance=1.5
     -- },
     front_end    = "OpenGL",
-    initial_cols = config["display"]["initial_cols"],
-    initial_rows = config["display"]["initial_rows"],
+    initial_cols = user_config["display"]["initial_cols"],
+    initial_rows = user_config["display"]["initial_rows"],
     line_height  = 1.0,
     native_macos_fullscreen_mode = false,
     use_resize_increments = true,
 
-    window_background_opacity = config["display"]["window_background_opacity"],
-    window_padding = config["display"]["window_padding"]
+    window_background_opacity = user_config["display"]["window_background_opacity"],
+    window_padding = user_config["display"]["window_padding"]
 }
 
 local config_color_scheme = {}
 
-if config["display"]["color_scheme"]["enable_gradient"] then
+if user_config["display"]["color_scheme"]["enable_gradient"] then
     config_color_scheme = {
         enabled = config_color_scheme_enabled,
         window_background_gradient = {
@@ -80,7 +81,7 @@ local config_environment = {
 
 local config_fonts = {
     enabled = config_fonts_enabled,
-    font_size = config["display"]["font_size"],
+    font_size = user_config["display"]["font_size"],
     font_rasterizer = "FreeType",
     font_shaper = "Harfbuzz",
     font_rules = {
@@ -123,7 +124,7 @@ local config_keys = {
     keys = {
         {
             key = "k",
-            mods = config["keymod"],
+            mods = user_config["keymod"],
             action = act.Multiple {
                 act.ClearScrollback "ScrollbackAndViewport",
                 act.SendKey { key = "L", mods = "CTRL" },
@@ -131,12 +132,12 @@ local config_keys = {
         },
         {
             key = "Enter",
-            mods = config["keymod"],
+            mods = user_config["keymod"],
             action = "ToggleFullScreen"
         },
         {
             key = "t",
-            mods = config["keymod"],
+            mods = user_config["keymod"],
             action=wezterm.action {
                 SpawnCommandInNewTab = {
                     cwd = wezterm.home_dir
@@ -145,7 +146,7 @@ local config_keys = {
         },
         {
             key = "n",
-            mods = config["keymod"],
+            mods = user_config["keymod"],
             action = wezterm.action {
                 SpawnCommandInNewWindow = {
                     cwd = wezterm.home_dir
@@ -154,7 +155,7 @@ local config_keys = {
         },
         {
             key = "w",
-            mods = config["keymod"],
+            mods = user_config["keymod"],
             action = wezterm.action {
                 CloseCurrentTab = {
                     confirm = true
@@ -163,7 +164,7 @@ local config_keys = {
         },
         {
             key =  "a",
-            mods = config["keymod"],
+            mods = user_config["keymod"],
             action = act.EmitEvent "select-all-to-clipboard"
         },
     },
@@ -236,25 +237,24 @@ local config_status_bar = {
 
 local config_test = {
     enabled = config_test_enabled,
-    status_update_interval = config["status_bar"]["update_interval"] * 1000
+    status_update_interval = user_config["status_bar"]["update_interval"] * 1000
 }
-
-function basename(s)
-    return string.gsub(s, '(.*[/\\])(.*)', '%2')
-end
 
 wezterm.on("format-tab-title", function(tab, tabs, panes, config, hover, max_width)
     local pane = tab.active_pane
-    local cwd = pane.foreground_process_name
-    local title = ""
-    local cwd_uri = pane.current_working_dir
-    if cwd_uri then
-        cwd = cwd_uri.file_path
-        cwd = string.gsub(cwd, wezterm.home_dir, "~")
-    end
-
-    if cwd ~= nil then
-        title = cwd
+    local title = util.basename(pane.foreground_process_name)
+    local cwd = nil
+    
+    wezterm.log_info(user_config)
+    if user_config["tabs"]["title_is_cwd"] then
+        local cwd_uri = pane.current_working_dir
+        if cwd_uri then
+            cwd = cwd_uri.file_path
+            cwd = string.gsub(cwd, wezterm.home_dir, "~")
+            if cwd ~= nil then
+                title = cwd
+            end
+        end
     end
 
     local color = "#41337c"

@@ -23,6 +23,9 @@ function config_parser.get_config()
                 bottom = 0
             }
         },
+        tabs = {
+            title_is_cwd = false
+        },
         status_bar = {
             update_interval = 3,
             system_status = {
