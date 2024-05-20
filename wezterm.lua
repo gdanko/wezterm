@@ -182,13 +182,7 @@ local config_tabs = {
 local config_status_bar = {
     wezterm.on('update-right-status', function(window, pane)
         -- Each element holds the text for a cell in a "powerline" style << fade
-        local cwd = ""
-        local hostname = ""
-        local cwd_uri = pane:get_current_working_dir()
-        if cwd_uri then
-            cwd = cwd_uri.file_path
-            hostname = cwd_uri.host or wezterm.hostname()
-        end
+        local cwd = util.get_cwd(pane)
 
         -- Get system stats using wsstats
         cells = status_bar.update_status_bar(cwd)
@@ -245,20 +239,34 @@ local config_test = {
     status_update_interval = config["status_bar"]["update_interval"] * 1000
 }
 
+function basename(s)
+    return string.gsub(s, '(.*[/\\])(.*)', '%2')
+end
+
 wezterm.on("format-tab-title", function(tab, tabs, panes, config, hover, max_width)
-    local tab_padding = "    "
-    if tab.is_active then
-        return {
-            {Background={Color="#301f7c"}},
-            {Text=tab_padding .. tab.active_pane.title .. tab_padding},
-        }
-    else
-        return {
-            {Background={Color="#41337c"}},
-            {Text=tab_padding .. tab.active_pane.title .. tab_padding},
-        }
+    local pane = tab.active_pane
+    local cwd = pane.foreground_process_name
+    local title = ""
+    local cwd_uri = pane.current_working_dir
+    if cwd_uri then
+        cwd = cwd_uri.file_path
+        cwd = string.gsub(cwd, wezterm.home_dir, "~")
     end
-    return tab.active_pane.title
+
+    if cwd ~= nil then
+        title = cwd
+    end
+
+    local color = "#41337c"
+    if tab.is_active then
+        color = "#301f7c"
+    elseif hover then
+        color = "green"
+    end
+    return {
+        { Background = { Color = color } },
+        { Text = util.pad_string(2, 2, title)},
+    }
 end)
 
 wezterm.on("select-all-to-clipboard", function(window, pane)
