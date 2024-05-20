@@ -27,7 +27,7 @@ function status_bar.update_status_bar(cwd)
         end
     end
 
-    -- cwd and github stuff will go here
+    -- cwd and github branch information
     if config["status_bar"]["toggles"]["show_cwd"] then
         if cwd then
             local bits = {
@@ -41,17 +41,17 @@ function status_bar.update_status_bar(cwd)
                     table.insert(bits, wezterm.nerdfonts.dev_git_branch)
                     table.insert(bits, branch_name)
 
-                    -- if commits_behind and commits_ahead then
-                    --     if (commits_behind > 0) and (commits_ahead <= 0) then
-                    --         table.insert(bits, "< " .. tostring(commits_behind))
-                    --     elseif (commits_behind <= 0) and (commits_ahead > 0) then
-                    --         table.insert(bits, "> " .. tostring(commits_ahead))
-                    --     elseif (commits_behind > 0) and (commits_ahead > 0) then
-                    --         table.insert(bits, "< " .. tostring(commits_behind))
-                    --         table.insert(bits, ", ")
-                    --         table.insert(bits, "> " .. tostring(commits_ahead))
-                    --     end
-                    -- end
+                    if commits_behind and commits_ahead then
+                        if (commits_behind > 0) and (commits_ahead <= 0) then
+                            table.insert(bits, "< " .. tostring(commits_behind))
+                        elseif (commits_behind <= 0) and (commits_ahead > 0) then
+                            table.insert(bits, "> " .. tostring(commits_ahead))
+                        elseif (commits_behind > 0) and (commits_ahead > 0) then
+                            table.insert(bits, "< " .. tostring(commits_behind))
+                            table.insert(bits, ", ")
+                            table.insert(bits, "> " .. tostring(commits_ahead))
+                        end
+                    end
 
                     if current_tag then
                         table.insert(bits, wezterm.nerdfonts.cod_tag .. " " .. current_tag)
