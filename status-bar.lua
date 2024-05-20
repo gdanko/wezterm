@@ -17,6 +17,43 @@ function status_bar.update_status_bar(cwd)
         table.insert(cells, util.pad_string(2, 2, date))
     end
 
+    -- battery
+    if config["status_bar"]["toggles"]["show_battery"] then
+        local icon = ""
+        for _, b in ipairs(wezterm.battery_info()) do
+          soc = b.state_of_charge * 100
+        end
+        if soc == 100 then
+            icon = wezterm.nerdfonts.md_battery
+        elseif soc < 100 and soc > 89 then
+            icon = wezterm.nerdfonts.md_battery_90
+        elseif soc < 90 and soc > 79 then
+            icon = wezterm.nerdfonts.md_battery_80
+        elseif soc < 80 and soc > 69 then
+            icon = wezterm.nerdfonts.md_battery_70
+        elseif soc < 70 and soc > 59 then
+            icon = wezterm.nerdfonts.md_battery_60
+        elseif soc < 60 and soc > 49 then
+            icon = wezterm.nerdfonts.md_battery_50
+        elseif soc < 50 and soc > 39 then
+            icon = wezterm.nerdfonts.md_battery_40
+        elseif soc < 40 and soc > 29 then
+            icon = wezterm.nerdfonts.md_battery_30
+        elseif soc < 30 and soc > 19 then
+            icon = wezterm.nerdfonts.md_battery_20
+        elseif soc < 20 and soc > 9 then
+            icon = wezterm.nerdfonts.md_battery_10
+        elseif soc < 10 and soc > 0 then
+            icon = wezterm.nerdfonts.md_battery_10
+        elseif soc < 10 then
+            icon = wezterm.nerdfonts.md_battery_alert
+        end
+        wezterm.log_info(icon)
+
+        bat = icon .. " " .. string.format('%.0f%%', soc)
+        table.insert(cells, util.pad_string(1, 1, bat))
+    end
+
     -- cwd and github stuff will go here
     if config["status_bar"]["toggles"]["show_cwd"] then
         if cwd then
@@ -149,7 +186,6 @@ function status_bar.update_status_bar(cwd)
                             if values["disk"] ~= nil then
                                 for _, block in ipairs(values["disk"]) do
                                     for _, disk_item in ipairs(disk_list) do
-                                        wezterm.log_info(disk_list)
                                         if block["mount_point"] == disk_item["mount_point"] then
                                             disk_usage = wezterm.nerdfonts.md_harddisk .. " " .. block["mount_point"] .. " " .. util.byte_converter(block["used"], disk_item["unit"]) .. " / " .. util.byte_converter(block["total"], disk_item["unit"])
                                             table.insert(cells, util.pad_string(2, 2, disk_usage))
