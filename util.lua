@@ -29,7 +29,9 @@ end
 function get_cwd(pane)
     local cwd_uri = pane:get_current_working_dir()
     if cwd_uri then
-        return cwd_uri.file_path
+        cwd = cwd_uri.file_path
+        cwd = string.gsub(cwd, wezterm.home_dir, "~")
+        return cwd
     end
     return nil
 end
