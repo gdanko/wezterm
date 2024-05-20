@@ -12,8 +12,10 @@ Clone the repository at the root of ~/.config. Pro tip, I use Dropbox so I can u
 * Generic default config that is pulled when wezterm is started.
 * Ability to override defaults on a per-hostname basis. `parse-config.lua` looks for `override.luas` and parses the overrides. Simply copy overrides.lua.SAMPLE to overrides.lua to use it.
 * iTerm2 color schemes (yes I know it's there by default) with the ability to randomize the scheme on configuration reload.
+* Fancy status bar stuff
 
-### Title bar features
+### Status Bar Features
+* Battery percentage
 * Clock
 * Stock quotes
 * Git branch information for paths that are repositories
