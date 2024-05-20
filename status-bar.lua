@@ -48,7 +48,6 @@ function status_bar.update_status_bar(cwd)
         elseif soc < 10 then
             icon = wezterm.nerdfonts.md_battery_alert
         end
-        wezterm.log_info(icon)
 
         bat = icon .. " " .. string.format('%.0f%%', soc)
         table.insert(cells, util.pad_string(1, 1, bat))
