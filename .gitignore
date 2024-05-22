@@ -41,4 +41,5 @@ luac.out
 
 # Overrides file
 overrides.lua
-
+wezterm-weather.json
+wezterm-stocks.json
