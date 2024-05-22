@@ -2,11 +2,17 @@ local battery_status = require "battery-status"
 local config_parser = require "parse-config"
 local github = require "github"
 local util = require "util"
+local weather = require "weather"
 local wezterm = require "wezterm"
 
 local wsstats_json_file = "/tmp/wsstats.json"
 
 status_bar = {}
+
+function url_encode(input)
+    input = string.gsub(input, "([^%w _%-.%~])", function(c) return string.format("%%%02x", string.byte(c)) end)
+    return input
+end
 
 function status_bar.update_status_bar(cwd)
     local config = config_parser.get_config()
@@ -26,6 +32,45 @@ function status_bar.update_status_bar(cwd)
                 bat = icon .. " " .. battery_percent
                 table.insert(cells, util.pad_string(1, 1, bat))
             end
+        end
+    end
+
+    -- weather
+    -- https://api.openweathermap.org/geo/1.0/direct?q=San+Diego,US&limit=5&appid=xxxxx
+    if config["status_bar"]["weather"]["enabled"] then
+        weather_file = "/tmp/wezterm-weather.json"
+        hours, minutes, seconds = util.get_hms()
+        if (minutes % 15) == 0 and seconds < 4 then
+            if config["status_bar"]["weather"]["api_key"] == nil then
+                weather_data = "missing weather api key"
+                table.insert(cells, util.pad_string(1, 1, weather_data))
+            elseif config["status_bar"]["weather"]["location"] == nil then
+                weather_data = "missing weather location"
+                table.insert(cells, util.pad_string(1, 1, weather_data))
+            else
+                appid = config["status_bar"]["weather"]["api_key"]
+                location = string.gsub(config["status_bar"]["weather"]["location"], " ", "%%20")
+                err = weather.write_weather_file(weather_file, location, appid)
+            end
+        else
+            if util.file_exists(weather_file) then
+                unit = "F"
+                if config["status_bar"]["weather"]["unit"] ~= "F" then
+                    unit = "C"
+                end
+                degree_symbol = "°"
+                weather_data = util.json_parse(weather_file)
+                if weather_data ~= nil then
+                    icon_id = weather_data["weather"][1]["icon"]
+                    current = weather_data["main"]["temp"]
+                    if unit == "C" then
+                        current = util.farenheit_to_celsius(current)
+                    end
+                    icon = weather.get_icon(icon_id)
+                    weather_data = current .. degree_symbol .. unit .. " " .. icon
+                    table.insert(cells, util.pad_string(2, 2, weather_data))
+                end
+             end
         end
     end
 
