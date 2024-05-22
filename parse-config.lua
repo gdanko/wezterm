@@ -43,6 +43,7 @@ function config_parser.get_config()
             },
             stock_quotes = {
                 enabled = true,
+                interval = 15, -- decreasing too aggressively this might get you rate-limited
                 symbols = {
                     "GOOG",
                     "AAPL"
@@ -58,8 +59,9 @@ function config_parser.get_config()
             weather = {
                 api_key = nil,
                 enabled = false,
+                interval = 15, -- decreasing too aggressively this might get you rate-limited
                 location = "San Diego, CA, US",
-                unit = "F",
+                unit = "F", -- Either "F" or "C"
             }
         }
     }
