@@ -77,10 +77,10 @@ function status_bar.update_status_bar(cwd)
                         local price = meta["regularMarketPrice"]
                         local last = meta["previousClose"]
                         if price > last then
-                            updown = wezterm.nerdfonts.md_arrow_up_thin
+                            updown = " 󰜷" -- \udb81\udf37
                             pct_change = string.format("%.2f", ((price - last) / last) * 100)
                         else
-                            updown = wezterm.nerdfonts.md_arrow_down_thin
+                            updown = " 󰜮" -- \udb81\udf2e
                             pct_change = string.format("%.2f", ((last - price) / last) * 100)
                         end
                         stockQuote = wezterm.nerdfonts.cod_graph_line .. " " .. symbol .. " $" .. price .. " " .. updown .. pct_change .. "%"
