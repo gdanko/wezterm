@@ -54,6 +54,12 @@ function config_parser.get_config()
                 show_cwd = false,
                 show_clock = false,
                 show_hostname = false,
+            },
+            weather = {
+                api_key = nil,
+                enabled = false,
+                location = "San Diego, CA, US",
+                unit = "F",
             }
         }
     }
