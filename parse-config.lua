@@ -28,7 +28,7 @@ function config_parser.get_config()
         },
         status_bar = {
             update_interval = 3,
-            system_status = {
+            system_status = { -- requires github.com/gdanko/wsstats
                 disk_list = {{mount_point = "/", unit = "Gi"}},
                 enabled = true,
                 network_interface_list = {},
