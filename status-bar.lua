@@ -36,11 +36,10 @@ function status_bar.update_status_bar(cwd)
     end
 
     -- weather
-    -- https://api.openweathermap.org/geo/1.0/direct?q=San+Diego,US&limit=5&appid=xxxxx
     if config["status_bar"]["weather"]["enabled"] then
-        weather_file = "/tmp/wezterm-weather.json"
+        data_file = util.path_join({wezterm.config_dir, "wezterm-weather.json"})
         hours, minutes, seconds = util.get_hms()
-        if (minutes % 15) == 0 and seconds < 4 then
+        if ((minutes % config["status_bar"]["weather"]["interval"]) == 0 and seconds < 4) or util.file_exists(data_file) == false then
             if config["status_bar"]["weather"]["api_key"] == nil then
                 weather_data = "missing weather api key"
                 table.insert(cells, util.pad_string(1, 1, weather_data))
@@ -50,25 +49,27 @@ function status_bar.update_status_bar(cwd)
             else
                 appid = config["status_bar"]["weather"]["api_key"]
                 location = string.gsub(config["status_bar"]["weather"]["location"], " ", "%%20")
-                err = weather.write_weather_file(weather_file, location, appid)
+                err = weather.write_weather_file(data_file, location, appid)
             end
         else
-            if util.file_exists(weather_file) then
+            if util.file_exists(data_file) then
                 unit = "F"
                 if config["status_bar"]["weather"]["unit"] ~= "F" then
                     unit = "C"
                 end
                 degree_symbol = "°"
-                weather_data = util.json_parse(weather_file)
+                weather_data = util.json_parse(data_file)
                 if weather_data ~= nil then
                     icon_id = weather_data["weather"][1]["icon"]
+                    condition_id = weather_data["weather"][1]["id"]
                     current = weather_data["main"]["temp"]
                     if unit == "C" then
                         current = util.farenheit_to_celsius(current)
                     end
-                    icon = weather.get_icon(icon_id)
+                    icon = weather.get_icon(icon_id, condition_id)
+
                     weather_data = current .. degree_symbol .. unit .. " " .. icon
-                    table.insert(cells, util.pad_string(2, 2, weather_data))
+                    table.insert(cells, util.pad_string(1, 1, weather_data))
                 end
              end
         end
@@ -111,27 +112,36 @@ function status_bar.update_status_bar(cwd)
 
     -- stock quotes
     if config["status_bar"]["stock_quotes"]["enabled"] then
-        local symbols = table.concat(config["status_bar"]["stock_quotes"]["symbols"], ",")
-        local url = "https://query1.finance.yahoo.com/v7/finance/spark?symbols=" .. symbols
-        success, stdout, stderr = wezterm.run_child_process({"curl", url})
-        if success then
-            local json_data = util.json_parse_string(stdout)
-            if json_data["spark"] ~= nil and json_data["spark"]["result"] ~= nil and #json_data["spark"]["result"] > 0 then
-                for _, block in ipairs(json_data["spark"]["result"]) do
-                    symbol = block["symbol"]
-                    meta = block["response"][1]["meta"]
-                    if meta["previousClose"] ~= nil and meta["regularMarketPrice"] ~= nil then
-                        local price = meta["regularMarketPrice"]
-                        local last = meta["previousClose"]
-                        if price > last then
-                            updown = " 󰜷" -- \udb81\udf37
-                            pct_change = string.format("%.2f", ((price - last) / last) * 100)
-                        else
-                            updown = " 󰜮" -- \udb81\udf2e
-                            pct_change = string.format("%.2f", ((last - price) / last) * 100)
+        data_file = util.path_join({wezterm.config_dir, "wezterm-stocks.json"})
+        if ((minutes % config["status_bar"]["stock_quotes"]["interval"]) == 0 and seconds < 4) or util.file_exists(data_file) == false then
+            local symbols = table.concat(config["status_bar"]["stock_quotes"]["symbols"], ",")
+            local url = "https://query1.finance.yahoo.com/v7/finance/spark?symbols=" .. symbols
+            success, stdout, stderr = wezterm.run_child_process({"curl", url})
+            if success then
+                file = io.open(data_file, "w")
+                file:write(stdout)
+                file:close()
+            end
+        else
+            if util.file_exists(data_file) then
+                market_data = util.json_parse(data_file)
+                if market_data["spark"] ~= nil and market_data["spark"]["result"] ~= nil and #market_data["spark"]["result"] > 0 then
+                    for _, block in ipairs(market_data["spark"]["result"]) do
+                        symbol = block["symbol"]
+                        meta = block["response"][1]["meta"]
+                        if meta["previousClose"] ~= nil and meta["regularMarketPrice"] ~= nil then
+                            local price = meta["regularMarketPrice"]
+                            local last = meta["previousClose"]
+                            if price > last then
+                                updown = "󰜷" -- \udb81\udf37
+                                pct_change = string.format("%.2f", ((price - last) / last) * 100)
+                            else
+                                updown = "󰜮" -- \udb81\udf2e
+                                pct_change = string.format("%.2f", ((last - price) / last) * 100)
+                            end
+                            stock_quote = wezterm.nerdfonts.cod_graph_line .. " " .. symbol .. " $" .. price .. " " .. updown .. pct_change .. "%"
+                            table.insert(cells, util.pad_string(2, 2, stock_quote))
                         end
-                        stockQuote = wezterm.nerdfonts.cod_graph_line .. " " .. symbol .. " $" .. price .. " " .. updown .. pct_change .. "%"
-                        table.insert(cells, util.pad_string(2, 2, stockQuote))
                     end
                 end
             end
