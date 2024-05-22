@@ -20,10 +20,12 @@ function status_bar.update_status_bar(cwd)
 
     -- battery
     if config["status_bar"]["toggles"]["show_battery"] then
-        for _, b in ipairs(wezterm.battery_info()) do
-            icon, battery_percent = battery_status.get_battery_status(b)
-            bat = icon .. " " .. battery_percent
-            table.insert(cells, util.pad_string(1, 1, bat))
+        if #wezterm.battery_info() > 0 then
+            for _, b in ipairs(wezterm.battery_info()) do
+                icon, battery_percent = battery_status.get_battery_status(b)
+                bat = icon .. " " .. battery_percent
+                table.insert(cells, util.pad_string(1, 1, bat))
+            end
         end
     end
 
@@ -122,7 +124,6 @@ function status_bar.update_status_bar(cwd)
                 end
 
                 if config["status_bar"]["system_status"]["toggles"]["show_cpu_usage"] then
-
                     if values["cpu"] ~= nil then
                         cpu_usage = wezterm.nerdfonts.oct_cpu .. " " .. "user " .. values["cpu"][1]["user"] .. "%, sys " .. values["cpu"][1]["system"] .. "%, idle " .. values["cpu"][1]["idle"] .. "%"
                     else
