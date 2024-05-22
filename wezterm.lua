@@ -194,19 +194,31 @@ local config_status_bar = {
       
         -- Color palette for the backgrounds of each cell
         -- https://maketintsandshades.com/
+        -- https://mdigi.tools/color-shades/#410093
         local colors = {
-            "#410093",
-            "#3b0084",
-            "#340076",
-            "#2e0067",
-            "#270058",
-            "#21004a",
-            "#1a003b",
+            -- "#c08fff",
+            -- "#b57aff",
+            -- "#aa66ff",
+            -- "#9e52ff",
+            -- "#933dff",
+            -- "#8729ff",
+            -- "#7c14ff",
+            -- "#7100ff",
+            -- "#6800eb",
+            "#5f00d6",
+            "#5600c2",
+            "#4d00ad",
+            "#440099",
+            "#3b0085",
+            "#320070",
+            "#29005c",
+            "#200047",
+            "#170033",
+            "#0e001f",
         }
       
         -- Foreground color for the text across the fade
         local text_fg = "#c0c0c0"
-      
         -- The elements to be formatted
         local elements = {}
         -- How many cells have been formatted
