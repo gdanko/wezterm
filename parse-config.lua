@@ -57,7 +57,7 @@ function config_parser.get_config()
                 show_hostname = false,
             },
             weather = {
-                api_key = nil,
+                api_key = nil, -- https://openweathermap.org/
                 enabled = false,
                 interval = 15, -- decreasing too aggressively this might get you rate-limited
                 location = "San Diego, CA, US",
