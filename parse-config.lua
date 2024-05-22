@@ -61,6 +61,8 @@ function config_parser.get_config()
                 enabled = false,
                 interval = 15, -- decreasing too aggressively this might get you rate-limited
                 location = "San Diego, CA, US",
+                show_high = false,
+                show_low = false,
                 unit = "F", -- Either "F" or "C"
             }
         }

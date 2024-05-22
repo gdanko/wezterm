@@ -7,6 +7,9 @@ local wezterm = require "wezterm"
 
 local wsstats_json_file = "/tmp/wsstats.json"
 
+local arrow_down = wezterm.nerdfonts.cod_arrow_small_down
+local arrow_up = wezterm.nerdfonts.cod_arrow_small_up
+
 status_bar = {}
 
 function url_encode(input)
@@ -63,13 +66,25 @@ function status_bar.update_status_bar(cwd)
                     icon_id = weather_data["weather"][1]["icon"]
                     condition_id = weather_data["weather"][1]["id"]
                     current = weather_data["main"]["temp"]
+                    high = weather_data["main"]["temp_max"]
+                    low = weather_data["main"]["temp_min"]
                     if unit == "C" then
                         current = util.farenheit_to_celsius(current)
+                        high = util.farenheit_to_celsius(high)
+                        low = util.farenheit_to_celsius(low)
                     end
                     icon = weather.get_icon(icon_id, condition_id)
 
-                    weather_data = current .. degree_symbol .. unit .. " " .. icon
-                    table.insert(cells, util.pad_string(1, 1, weather_data))
+                    weather_data = {
+                        current .. degree_symbol .. unit .. " " .. icon
+                    }
+                    if config["status_bar"]["weather"]["show_low"] then
+                        table.insert(weather_data, arrow_down .. " " .. low .. degree_symbol .. unit)
+                    end
+                    if config["status_bar"]["weather"]["show_high"] then
+                        table.insert(weather_data, arrow_up .. " " .. high .. degree_symbol .. unit)
+                    end
+                    table.insert(cells, util.pad_string(1, 1, table.concat(weather_data, " ")))
                 end
              end
         end
@@ -133,10 +148,10 @@ function status_bar.update_status_bar(cwd)
                             local price = meta["regularMarketPrice"]
                             local last = meta["previousClose"]
                             if price > last then
-                                updown = "󰜷" -- \udb81\udf37
+                                updown = arrow_up
                                 pct_change = string.format("%.2f", ((price - last) / last) * 100)
                             else
-                                updown = "󰜮" -- \udb81\udf2e
+                                updown = arrow_down
                                 pct_change = string.format("%.2f", ((last - price) / last) * 100)
                             end
                             stock_quote = wezterm.nerdfonts.cod_graph_line .. " " .. symbol .. " $" .. price .. " " .. updown .. pct_change .. "%"
@@ -150,7 +165,8 @@ function status_bar.update_status_bar(cwd)
 
     -- system status
     if config["status_bar"]["system_status"]["enabled"] then
-        local values = util.json_parse(wsstats_json_file)
+        data_file = "/tmp/wsstats.json"
+        local values = util.json_parse(data_file)
         if values ~= nil then
             -- check for freshness
             if (util.get_timestamp() - values["timestamp"]) > 5 then
