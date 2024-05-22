@@ -149,13 +149,26 @@ function duration(seconds)
     return days, hours, minutes, secs
 end
 
+function get_hms()
+    time = os.date("*t")
+
+    return time.hour, time.min, time.sec
+end
+
+function farenheit_to_celsius(temp)
+    c = (((temp - 32) * 5) / 9)
+    return string.format("%.2f", c)
+end
+
 util.basename = basename
 util.byte_converter = byte_converter
 util.dirname = dirname
 util.duration = duration
 util.execute_command = execute_command
+util.farenheit_to_celsius = farenheit_to_celsius
 util.file_exists = file_exists
 util.get_cwd = get_cwd
+util.get_hms = get_hms
 util.get_timestamp = get_timestamp
 util.has_value = has_value
 util.json_parse = json_parse
