@@ -43,7 +43,7 @@ function config_parser.get_config()
             },
             stock_quotes = {
                 enabled = true,
-                interval = 15, -- decreasing too aggressively this might get you rate-limited
+                interval = 15, -- decreasing too aggressively might get you rate-limited
                 symbols = {
                     "GOOG",
                     "AAPL"
@@ -59,7 +59,7 @@ function config_parser.get_config()
             weather = {
                 api_key = nil, -- https://openweathermap.org/
                 enabled = false,
-                interval = 15, -- decreasing too aggressively this might get you rate-limited
+                interval = 15, -- decreasing too aggressively might get you rate-limited
                 location = "San Diego, CA, US",
                 show_high = false,
                 show_low = false,
