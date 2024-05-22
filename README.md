@@ -12,6 +12,7 @@ Clone the repository at the root of ~/.config. Pro tip, I use Dropbox so I can u
 * Generic default config that is pulled when wezterm is started.
 * Ability to override defaults on a per-hostname basis. `parse-config.lua` looks for `override.luas` and parses the overrides. Simply copy overrides.lua.SAMPLE to overrides.lua to use it.
 * iTerm2 color schemes (yes I know it's there by default) with the ability to randomize the scheme on configuration reload.
+* Tab title can be process name (default) or cwd
 * Fancy status bar stuff
 
 ### Status Bar Features
@@ -26,7 +27,6 @@ Clone the repository at the root of ~/.config. Pro tip, I use Dropbox so I can u
   * Memory Usage
   * Disk Usage
   * Network Throughput
-* Tab title can be process name (default) or cwd
 * Weather, with optional low/high (requires OpenWeatherMap API key)
 
 ## To-Do
