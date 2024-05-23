@@ -68,7 +68,7 @@ function status_bar.update_status_bar(cwd)
             else
                 appid = config["status_bar"]["weather"]["api_key"]
                 location = string.gsub(config["status_bar"]["weather"]["location"], " ", "%%20")
-                err = weather.write_weather_file(data_file, location, appid)
+                err = weather.write_data_file(data_file, location, appid)
             end
         else
             if util.file_exists(data_file) then
