@@ -49,11 +49,15 @@ function config_parser.get_config()
                     "AAPL"
                 }
             },
+            system_updates = {
+                enabled = true,
+                interval = 15,
+            },
             toggles = {
                 show_battery = false,
                 show_branch_info = true,
-                show_cwd = false,
                 show_clock = false,
+                show_cwd = false,
                 show_hostname = false,
             },
             weather = {
