@@ -10,10 +10,10 @@ Clone the repository at the root of ~/.config. Pro tip, I use Dropbox so I can u
 
 ## Features
 * Generic default config that is pulled when wezterm is started.
-* Ability to override defaults on a per-hostname basis. `parse-config.lua` looks for `override.luas` and parses the overrides. Simply copy overrides.lua.SAMPLE to overrides.lua to use it.
-* iTerm2 color schemes (yes I know it's there by default) with the ability to randomize the scheme on configuration reload.
-* Tab title can be process name (default) or cwd
-* Fancy status bar stuff
+* Ability to override defaults on a per-hostname basis. `parse-config.lua` looks for `override.lua` and parses the overrides. Simply copy overrides.lua.SAMPLE to overrides.lua to use it. Any time you update the overrides file, WezTerm will re-read everything.
+* iTerm2 color schemes (yes I know it's there by default) with the ability to randomize the scheme on configuration reload. Please see this [repo](https://github.com/gdanko/iterm-color-to-gnome-terminal).
+* Tab title can be process name (default) or cwd.
+* Fancy status bar stuff.
 
 ### Status Bar Features
 * Battery percentage
@@ -27,6 +27,7 @@ Clone the repository at the root of ~/.config. Pro tip, I use Dropbox so I can u
   * Memory Usage
   * Disk Usage
   * Network Throughput
+* System update count (only MacOS for the moment)
 * Weather, with optional low/high (requires OpenWeatherMap API key)
 
 ## To-Do
