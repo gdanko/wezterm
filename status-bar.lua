@@ -1,5 +1,6 @@
 local battery_status = require "battery-status"
 local config_parser = require "parse-config"
+local system_updates = require "system-updates"
 local github = require "github"
 local util = require "util"
 local weather = require "weather"
@@ -38,9 +39,24 @@ function status_bar.update_status_bar(cwd)
         end
     end
 
+    -- system updates
+    if config["status_bar"]["system_updates"]["enabled"] then
+        data_file = util.path_join({wezterm.config_dir, "data", "system-updates.json"})
+        hours, minutes, seconds = util.get_hms()
+        if ((minutes % config["status_bar"]["system_updates"]["interval"]) == 0 and seconds < 4) or util.file_exists(data_file) == false then
+            system_updates.find_updates(data_file)
+        else
+            update_data = util.json_parse(data_file)
+            if update_data ~= nil then
+                update_status = wezterm.nerdfonts.md_floppy .. " updates: " .. update_data["count"]
+                table.insert(cells, util.pad_string(2, 2, update_status))
+            end
+        end
+    end
+
     -- weather
     if config["status_bar"]["weather"]["enabled"] then
-        data_file = util.path_join({wezterm.config_dir, "wezterm-weather.json"})
+        data_file = util.path_join({wezterm.config_dir, "data", "weather.json"})
         hours, minutes, seconds = util.get_hms()
         if ((minutes % config["status_bar"]["weather"]["interval"]) == 0 and seconds < 4) or util.file_exists(data_file) == false then
             if config["status_bar"]["weather"]["api_key"] == nil then
@@ -75,16 +91,16 @@ function status_bar.update_status_bar(cwd)
                     end
                     icon = weather.get_icon(icon_id, condition_id)
 
-                    weather_data = {
+                    weather_status = {
                         current .. degree_symbol .. unit .. " " .. icon
                     }
                     if config["status_bar"]["weather"]["show_low"] then
-                        table.insert(weather_data, arrow_down .. " " .. low .. degree_symbol .. unit)
+                        table.insert(weather_status, arrow_down .. " " .. low .. degree_symbol .. unit)
                     end
                     if config["status_bar"]["weather"]["show_high"] then
-                        table.insert(weather_data, arrow_up .. " " .. high .. degree_symbol .. unit)
+                        table.insert(weather_status, arrow_up .. " " .. high .. degree_symbol .. unit)
                     end
-                    table.insert(cells, util.pad_string(1, 1, table.concat(weather_data, " ")))
+                    table.insert(cells, util.pad_string(1, 1, table.concat(weather_status, " ")))
                 end
              end
         end
@@ -127,7 +143,8 @@ function status_bar.update_status_bar(cwd)
 
     -- stock quotes
     if config["status_bar"]["stock_quotes"]["enabled"] then
-        data_file = util.path_join({wezterm.config_dir, "wezterm-stocks.json"})
+        data_file = util.path_join({wezterm.config_dir, "data", "stock-quotes.json"})
+        hours, minutes, seconds = util.get_hms()
         if ((minutes % config["status_bar"]["stock_quotes"]["interval"]) == 0 and seconds < 4) or util.file_exists(data_file) == false then
             local symbols = table.concat(config["status_bar"]["stock_quotes"]["symbols"], ",")
             local url = "https://query1.finance.yahoo.com/v7/finance/spark?symbols=" .. symbols
