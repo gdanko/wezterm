@@ -316,8 +316,6 @@ function status_bar.update_status_bar(cwd)
             table.insert(cells, util.pad_string(2, 2, wezterm.nerdfonts.cod_bug .. " wsstats not running, please see https://github.com/gdanko/wsstats."))
         end
     end
-
-
     return cells
 end
 
