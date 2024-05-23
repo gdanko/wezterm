@@ -22,7 +22,7 @@ function weather.write_data_file(data_file)
                 if success then
                     weather_data = util.json_parse_string(stdout)
                     if weather_data ~= nil then
-                        weather_data["timstamp"] = util.get_timestamp()
+                        weather_data["timestamp"] = util.get_timestamp()
                         cod = weather_data["cod"]
                         -- cod is status code
                         -- error out on this
