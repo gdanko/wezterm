@@ -9,7 +9,7 @@ local wezterm = require "wezterm"
 
 local weather = {}
 
-function weather.write_weather_file(weather_file)
+function weather.write_data_file(data_file)
     url = string.format("https://api.openweathermap.org/geo/1.0/direct?q=%s&limit=1&appid=%s", location, appid)
     success, stdout, stderr = wezterm.run_child_process({"curl", url})
     if success then
@@ -26,7 +26,7 @@ function weather.write_weather_file(weather_file)
                         cod = weather_data["cod"]
                         -- cod is status code
                         -- error out on this
-                        file = io.open(weather_file, "w")
+                        file = io.open(data_file, "w")
                         file:write(wezterm.json_encode(weather_data))
                         file:close()
                     end
