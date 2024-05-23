@@ -10,6 +10,7 @@ local wsstats_json_file = "/tmp/wsstats.json"
 
 local arrow_down = wezterm.nerdfonts.cod_arrow_small_down
 local arrow_up = wezterm.nerdfonts.cod_arrow_small_up
+local config = config_parser.get_config()
 
 status_bar = {}
 
@@ -19,7 +20,6 @@ function url_encode(input)
 end
 
 function status_bar.update_status_bar(cwd)
-    local config = config_parser.get_config()
     local cells = {}
 
     -- clock
@@ -39,21 +39,6 @@ function status_bar.update_status_bar(cwd)
         end
     end
 
-    -- system updates
-    if config["status_bar"]["system_updates"]["enabled"] then
-        data_file = util.path_join({wezterm.config_dir, "data", "system-updates.json"})
-        hours, minutes, seconds = util.get_hms()
-        if ((minutes % config["status_bar"]["system_updates"]["interval"]) == 0 and seconds < 4) or util.file_exists(data_file) == false then
-            system_updates.find_updates(data_file)
-        else
-            update_data = util.json_parse(data_file)
-            if update_data ~= nil then
-                update_status = wezterm.nerdfonts.md_floppy .. " updates: " .. update_data["count"]
-                table.insert(cells, util.pad_string(2, 2, update_status))
-            end
-        end
-    end
-
     -- weather
     if config["status_bar"]["weather"]["enabled"] then
         data_file = util.path_join({wezterm.config_dir, "data", "weather.json"})
@@ -69,6 +54,7 @@ function status_bar.update_status_bar(cwd)
                 appid = config["status_bar"]["weather"]["api_key"]
                 location = string.gsub(config["status_bar"]["weather"]["location"], " ", "%%20")
                 err = weather.write_data_file(data_file, location, appid)
+                -- Do something with the error
             end
         else
             if util.file_exists(data_file) then
@@ -77,30 +63,35 @@ function status_bar.update_status_bar(cwd)
                     unit = "C"
                 end
                 degree_symbol = "°"
-                weather_data = util.json_parse(data_file)
-                if weather_data ~= nil then
-                    icon_id = weather_data["weather"][1]["icon"]
-                    condition_id = weather_data["weather"][1]["id"]
-                    current = weather_data["main"]["temp"]
-                    high = weather_data["main"]["temp_max"]
-                    low = weather_data["main"]["temp_min"]
-                    if unit == "C" then
-                        current = util.farenheit_to_celsius(current)
-                        high = util.farenheit_to_celsius(high)
-                        low = util.farenheit_to_celsius(low)
-                    end
-                    icon = weather.get_icon(icon_id, condition_id)
 
-                    weather_status = {
-                        current .. degree_symbol .. unit .. " " .. icon
-                    }
-                    if config["status_bar"]["weather"]["show_low"] then
-                        table.insert(weather_status, arrow_down .. " " .. low .. degree_symbol .. unit)
+                local weather_data = util.json_parse(data_file)
+                if weather_data ~= nil then
+                    if (util.get_timestamp() - weather_data["timestamp"]) > 1800 then
+                        table.insert(cells, util.pad_string(2, 2, wezterm.nerdfonts.cod_bug .. " weather data is stale"))
+                    else
+                        icon_id = weather_data["weather"][1]["icon"]
+                        condition_id = weather_data["weather"][1]["id"]
+                        current = weather_data["main"]["temp"]
+                        high = weather_data["main"]["temp_max"]
+                        low = weather_data["main"]["temp_min"]
+                        if unit == "C" then
+                            current = util.farenheit_to_celsius(current)
+                            high = util.farenheit_to_celsius(high)
+                            low = util.farenheit_to_celsius(low)
+                        end
+                        icon = weather.get_icon(icon_id, condition_id)
+
+                        weather_status = {
+                            current .. degree_symbol .. unit .. " " .. icon
+                        }
+                        if config["status_bar"]["weather"]["show_low"] then
+                            table.insert(weather_status, arrow_down .. " " .. low .. degree_symbol .. unit)
+                        end
+                        if config["status_bar"]["weather"]["show_high"] then
+                            table.insert(weather_status, arrow_up .. " " .. high .. degree_symbol .. unit)
+                        end
+                        table.insert(cells, util.pad_string(1, 1, table.concat(weather_status, " ")))
                     end
-                    if config["status_bar"]["weather"]["show_high"] then
-                        table.insert(weather_status, arrow_up .. " " .. high .. degree_symbol .. unit)
-                    end
-                    table.insert(cells, util.pad_string(1, 1, table.concat(weather_status, " ")))
                 end
              end
         end
@@ -176,6 +167,24 @@ function status_bar.update_status_bar(cwd)
                         end
                     end
                 end
+            end
+        end
+    end
+
+    -- system updates
+    -- This MUST run as the last scheduled check as it will interfere with other checks on Macs
+    -- 'softwareupdate --list' takes ~6 seconds to run and so the other checks cannot run in a timely manner
+    -- I'll find a better way to do this
+    if config["status_bar"]["system_updates"]["enabled"] then
+        data_file = util.path_join({wezterm.config_dir, "data", "system-updates.json"})
+        hours, minutes, seconds = util.get_hms()
+        if ((minutes % config["status_bar"]["system_updates"]["interval"]) == 0 and seconds < 4) or util.file_exists(data_file) == false then
+            system_updates.find_updates(data_file)
+        else
+            update_data = util.json_parse(data_file)
+            if update_data ~= nil then
+                update_status = wezterm.nerdfonts.md_floppy .. " updates: " .. update_data["count"]
+                table.insert(cells, util.pad_string(2, 2, update_status))
             end
         end
     end
@@ -292,7 +301,7 @@ function status_bar.update_status_bar(cwd)
         end
     end
 
-    -- do stuff like clock here
+
         
     return cells
 end
