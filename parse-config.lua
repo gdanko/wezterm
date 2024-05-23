@@ -31,6 +31,7 @@ function config_parser.get_config()
             system_status = { -- requires github.com/gdanko/wsstats
                 disk_list = {{mount_point = "/", unit = "Gi"}},
                 enabled = true,
+                freshness_threshold = 5, -- minutes
                 network_interface_list = {},
                 toggles = {
                     show_cpu_usage = true,
@@ -43,6 +44,7 @@ function config_parser.get_config()
             },
             stock_quotes = {
                 enabled = true,
+                freshness_threshold = 60, -- minutes
                 interval = 15, -- decreasing too aggressively might get you rate-limited
                 symbols = {
                     "GOOG",
@@ -51,6 +53,7 @@ function config_parser.get_config()
             },
             system_updates = {
                 enabled = true,
+                freshness_threshold = 60, -- minutes
                 interval = 30,
             },
             toggles = {
@@ -63,6 +66,7 @@ function config_parser.get_config()
             weather = {
                 api_key = nil, -- https://openweathermap.org/
                 enabled = false,
+                freshness_threshold = 30, -- minutes
                 interval = 15, -- decreasing too aggressively might get you rate-limited
                 location = "San Diego, CA, US",
                 show_high = false,
