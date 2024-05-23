@@ -22,6 +22,41 @@ end
 function status_bar.update_status_bar(cwd)
     local cells = {}
 
+    -- cwd and github branch information
+    if config["status_bar"]["toggles"]["show_cwd"] then
+        if cwd then
+            local bits = {
+                wezterm.nerdfonts.cod_folder,
+                cwd
+            }
+            -- display branch info and commits ahead/behind if cwd is a repository
+            if config["status_bar"]["toggles"]["show_branch_info"] then
+                local branch_name, commits_behind, commits_ahead, current_tag = github.branch_info(cwd)
+                if branch_name then
+                    table.insert(bits, wezterm.nerdfonts.dev_git_branch)
+                    table.insert(bits, branch_name)
+
+                    if commits_behind and commits_ahead then
+                        if (commits_behind > 0) and (commits_ahead <= 0) then
+                            table.insert(bits, "< " .. tostring(commits_behind))
+                        elseif (commits_behind <= 0) and (commits_ahead > 0) then
+                            table.insert(bits, "> " .. tostring(commits_ahead))
+                        elseif (commits_behind > 0) and (commits_ahead > 0) then
+                            table.insert(bits, "< " .. tostring(commits_behind))
+                            table.insert(bits, ", ")
+                            table.insert(bits, "> " .. tostring(commits_ahead))
+                        end
+                    end
+
+                    if current_tag then
+                        table.insert(bits, wezterm.nerdfonts.cod_tag .. " " .. current_tag)
+                    end
+                end
+            end
+            table.insert(cells, util.pad_string(2, 2, table.concat(bits, " ")))
+        end
+    end
+
     -- clock
     if config["status_bar"]["toggles"]["show_clock"] then
         local date = wezterm.strftime "%a %b %-d %H:%M"
@@ -66,7 +101,7 @@ function status_bar.update_status_bar(cwd)
 
                 local weather_data = util.json_parse(data_file)
                 if weather_data ~= nil then
-                    if (util.get_timestamp() - weather_data["timestamp"]) > 1800 then
+                    if (util.get_timestamp() - weather_data["timestamp"]) > (config["status_bar"]["weather"]["freshness_threshold"] * 60) then
                         table.insert(cells, util.pad_string(2, 2, wezterm.nerdfonts.cod_bug .. " weather data is stale"))
                     else
                         icon_id = weather_data["weather"][1]["icon"]
@@ -93,42 +128,7 @@ function status_bar.update_status_bar(cwd)
                         table.insert(cells, util.pad_string(1, 1, table.concat(weather_status, " ")))
                     end
                 end
-             end
-        end
-    end
-
-    -- cwd and github branch information
-    if config["status_bar"]["toggles"]["show_cwd"] then
-        if cwd then
-            local bits = {
-                wezterm.nerdfonts.cod_folder,
-                cwd
-            }
-            -- display branch info and commits ahead/behind if cwd is a repository
-            if config["status_bar"]["toggles"]["show_branch_info"] then
-                local branch_name, commits_behind, commits_ahead, current_tag = github.branch_info(cwd)
-                if branch_name then
-                    table.insert(bits, wezterm.nerdfonts.dev_git_branch)
-                    table.insert(bits, branch_name)
-
-                    if commits_behind and commits_ahead then
-                        if (commits_behind > 0) and (commits_ahead <= 0) then
-                            table.insert(bits, "< " .. tostring(commits_behind))
-                        elseif (commits_behind <= 0) and (commits_ahead > 0) then
-                            table.insert(bits, "> " .. tostring(commits_ahead))
-                        elseif (commits_behind > 0) and (commits_ahead > 0) then
-                            table.insert(bits, "< " .. tostring(commits_behind))
-                            table.insert(bits, ", ")
-                            table.insert(bits, "> " .. tostring(commits_ahead))
-                        end
-                    end
-
-                    if current_tag then
-                        table.insert(bits, wezterm.nerdfonts.cod_tag .. " " .. current_tag)
-                    end
-                end
             end
-            table.insert(cells, util.pad_string(2, 2, table.concat(bits, " ")))
         end
     end
 
@@ -141,31 +141,43 @@ function status_bar.update_status_bar(cwd)
             local url = "https://query1.finance.yahoo.com/v7/finance/spark?symbols=" .. symbols
             success, stdout, stderr = wezterm.run_child_process({"curl", url})
             if success then
-                file = io.open(data_file, "w")
-                file:write(stdout)
-                file:close()
+                json_data = util.json_parse_string(stdout)
+                if json_data ~= nil then
+                    json_data["timestamp"] = util.get_timestamp()
+                    file = io.open(data_file, "w")
+                    file:write(wezterm.json_encode(json_data))
+                    file:close()
+                end
             end
         else
             if util.file_exists(data_file) then
                 market_data = util.json_parse(data_file)
-                if market_data["spark"] ~= nil and market_data["spark"]["result"] ~= nil and #market_data["spark"]["result"] > 0 then
-                    for _, block in ipairs(market_data["spark"]["result"]) do
-                        symbol = block["symbol"]
-                        meta = block["response"][1]["meta"]
-                        if meta["previousClose"] ~= nil and meta["regularMarketPrice"] ~= nil then
-                            local price = meta["regularMarketPrice"]
-                            local last = meta["previousClose"]
-                            if price > last then
-                                updown = arrow_up
-                                pct_change = string.format("%.2f", ((price - last) / last) * 100)
-                            else
-                                updown = arrow_down
-                                pct_change = string.format("%.2f", ((last - price) / last) * 100)
+                if market_data ~= nil then
+                    if (util.get_timestamp() - market_data["timestamp"]) > (config["status_bar"]["stock_quotes"]["freshness_threshold"] * 60) then
+                        table.insert(cells, util.pad_string(2, 2, wezterm.nerdfonts.cod_bug .. " stock data is stale"))
+                    else
+                        if market_data["spark"] ~= nil and market_data["spark"]["result"] ~= nil and #market_data["spark"]["result"] > 0 then
+                            for _, block in ipairs(market_data["spark"]["result"]) do
+                                symbol = block["symbol"]
+                                meta = block["response"][1]["meta"]
+                                if meta["previousClose"] ~= nil and meta["regularMarketPrice"] ~= nil then
+                                    local price = meta["regularMarketPrice"]
+                                    local last = meta["previousClose"]
+                                    if price > last then
+                                        updown = arrow_up
+                                        pct_change = string.format("%.2f", ((price - last) / last) * 100)
+                                    else
+                                        updown = arrow_down
+                                        pct_change = string.format("%.2f", ((last - price) / last) * 100)
+                                    end
+                                    stock_quote = wezterm.nerdfonts.cod_graph_line .. " " .. symbol .. " $" .. price .. " " .. updown .. pct_change .. "%"
+                                    table.insert(cells, util.pad_string(2, 2, stock_quote))
+                                end
                             end
-                            stock_quote = wezterm.nerdfonts.cod_graph_line .. " " .. symbol .. " $" .. price .. " " .. updown .. pct_change .. "%"
-                            table.insert(cells, util.pad_string(2, 2, stock_quote))
                         end
                     end
+                else
+                    stock_quote = wezterm.nerdfonts.cod_bug .. " Failed to parse stock data"
                 end
             end
         end
@@ -183,8 +195,12 @@ function status_bar.update_status_bar(cwd)
         else
             update_data = util.json_parse(data_file)
             if update_data ~= nil then
-                update_status = wezterm.nerdfonts.md_floppy .. " updates: " .. update_data["count"]
-                table.insert(cells, util.pad_string(2, 2, update_status))
+                if (util.get_timestamp() - market_data["timestamp"]) > (config["status_bar"]["system_updates"]["freshness_threshold"] * 60) then
+                    table.insert(cells, util.pad_string(2, 2, wezterm.nerdfonts.cod_bug .. " system update data is stale"))
+                else
+                    update_status = wezterm.nerdfonts.md_floppy .. " updates: " .. update_data["count"]
+                    table.insert(cells, util.pad_string(2, 2, update_status))
+                end
             end
         end
     end
@@ -195,7 +211,7 @@ function status_bar.update_status_bar(cwd)
         local values = util.json_parse(data_file)
         if values ~= nil then
             -- check for freshness
-            if (util.get_timestamp() - values["timestamp"]) > 5 then
+            if (util.get_timestamp() - values["timestamp"]) > (config["status_bar"]["system_status"]["freshness_threshold"] * 60) then
                 table.insert(cells, util.pad_string(2, 2, wezterm.nerdfonts.cod_bug .. " wsstats data is stale, please verify it's still running"))
             else
                 if config["status_bar"]["system_status"]["toggles"]["show_uptime"] then
@@ -302,7 +318,6 @@ function status_bar.update_status_bar(cwd)
     end
 
 
-        
     return cells
 end
 
