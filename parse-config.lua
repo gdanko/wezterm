@@ -51,7 +51,7 @@ function config_parser.get_config()
             },
             system_updates = {
                 enabled = true,
-                interval = 15,
+                interval = 30,
             },
             toggles = {
                 show_battery = false,
