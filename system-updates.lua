@@ -30,6 +30,8 @@ function system_updates.find_updates(data_file)
             file:close()
         end
     end
+    -- debian
+    -- /usr/lib/update-notifier/apt-check --human-readable
 end
 
 return system_updates
