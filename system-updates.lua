@@ -7,9 +7,6 @@ function system_updates.find_updates(data_file)
     local config = config_parser.get_config()
     if config["os_name"] == "darwin" then
         success, stdout, stderr = wezterm.run_child_process({"softwareupdate", "--list"})
-        wezterm.log_info(data_file)
-        wezterm.log_info(success)
-        wezterm.log_info(stdout)
         if success then
             updates = 0
             lines = wezterm.split_by_newlines(stdout)
@@ -29,43 +26,41 @@ function system_updates.find_updates(data_file)
             file:write(wezterm.json_encode(output))
             file:close()
         end
-    elseif config["os_name"] == "linux" then
-        local distro = ""
-        success, stdout, stderr = wezterm.run_child_process({"lsb_release", "-a"})
-        if success then
-            index_ubuntu = string.find(stdout, "Ubuntu")
-            index_fedora = string.find(stdout, "Fedora")
-            if index_ubuntu then
-                success, stdout, stderr = wezterm.run_child_process({"/usr/lib/update-notifier/apt-check", "--human-readable"})
-                if success then
-                    lines = wezterm.split_by_newlines(stdout)
-                    match = lines[1]:match("^%d+")
-                    if match then
-                        output = {
-                            timestamp = util.get_timestamp(),
-                            os = "ubuntu",
-                            count = match,
-                        }
-                        file = io.open(data_file, "w")
-                        file:write(wezterm.json_encode(output))
-                        file:close()
-                    end
+    elseif config["os_name"] == "linux" and config["os_distro"] ~= nil then
+        wezterm.log_info(config["os_distro"])
+        output = {
+            timestamp = util.get_timestamp(),
+            os = config["os_distro"],
+            count = 0,
+        }
+        if config["os_distro"] == "alpine" then
+            success, stdout, stderr = wezterm.run_child_process({"apk", "-u", "list"})
+            if success then
+                lines = wezterm.split_by_newlines(stdout)
+                output["count"] = #lines
+            end
+        elseif config["os_distro"] == "debian" or config["os_distro"] == "ubuntu" then
+            success, stdout, stderr = wezterm.run_child_process({"/usr/lib/update-notifier/apt-check", "--human-readable"})
+            if success then
+                lines = wezterm.split_by_newlines(stdout)
+                match = lines[1]:match("^%d+")
+                if match then
+                    output["count"] = match
                 end
-            elseif index_fedora then
-                success, stdout, stderr = wezterm.run_child_process({"yum", "list", "updates"})
-                if success then
-                    lines = wezterm.split_by_newlines(stdout)
-                    output = {
-                        timestamp = util.get_timestamp(),
-                        os = "fedora",
-                        count = #lines,
-                    }
-                    file = io.open(data_file, "w")
-                    file:write(wezterm.json_encode(output))
-                    file:close()
+            end
+        elseif config["os_distro"] == "centos" or config["os_distro"] == "fedora" then
+            success, stdout, stderr = wezterm.run_child_process({"yum", "list", "updates"})
+            if success then
+                lines = wezterm.split_by_newlines(stdout)
+                match = lines[1]:match("^%d+")
+                if match then
+                    output["count"] = match
                 end
             end
         end
+        file = io.open(data_file, "w")
+        file:write(wezterm.json_encode(output))
+        file:close()
     end
 end
 
