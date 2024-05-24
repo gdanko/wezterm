@@ -87,6 +87,26 @@ function file_exists(filename)
     end
 end
 
+function exists(file)
+    local ok, err, code = os.rename(file, file)
+    if not ok then
+       if code == 13  or code == 1 then
+          -- Permission denied, but it exists
+          return true, nil
+       end
+    end
+    return ok, err
+ end
+
+function is_dir(path)
+    ok, err = exists(path.."/")
+    if ok == true and err == nil then
+        return true
+    else
+        return false
+    end
+end
+
 function json_parse(filename)
     if file_exists(filename) then
         local filehandle = io.open(filename, "r")
@@ -165,12 +185,14 @@ util.byte_converter = byte_converter
 util.dirname = dirname
 util.duration = duration
 util.execute_command = execute_command
+util.exists = exists
 util.farenheit_to_celsius = farenheit_to_celsius
 util.file_exists = file_exists
 util.get_cwd = get_cwd
 util.get_hms = get_hms
 util.get_timestamp = get_timestamp
 util.has_value = has_value
+util.is_dir = is_dir
 util.json_parse = json_parse
 util.json_parse_string = json_parse_string
 util.pad_string = pad_string
