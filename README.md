@@ -27,7 +27,7 @@ Clone the repository at the root of ~/.config. Pro tip, I use Dropbox so I can u
   * Memory Usage
   * Disk Usage
   * Network Throughput
-* System update count (currently MacOS, Alpine, CentOS, Debian, Fedora, Ubuntu)
+* System update count (currently MacOS, Alpine, Arch, CentOS, Debian, Fedora, Ubuntu)
 * Weather, with optional low/high (requires OpenWeatherMap API key)
 
 ## To-Do
