@@ -12,6 +12,11 @@ local arrow_down = wezterm.nerdfonts.cod_arrow_small_down
 local arrow_up = wezterm.nerdfonts.cod_arrow_small_up
 local config = config_parser.get_config()
 
+local stock_quotes_config = config["status_bar"]["stock_quotes"]
+local system_status_config = config["status_bar"]["system_status"]
+local system_updates_config = config["status_bar"]["system_updates"]
+local weather_config = config["status_bar"]["weather"]
+
 status_bar = {}
 
 function url_encode(input)
@@ -75,33 +80,33 @@ function status_bar.update_status_bar(cwd)
     end
 
     -- weather
-    if config["status_bar"]["weather"]["enabled"] then
+    if weather_config["enabled"] then
         data_file = util.path_join({wezterm.config_dir, "data", "weather.json"})
         hours, minutes, seconds = util.get_hms()
-        if ((minutes % config["status_bar"]["weather"]["interval"]) == 0 and seconds < 4) or util.file_exists(config["status_bar"]["weather"]["data_file"]) == false then
-            if config["status_bar"]["weather"]["api_key"] == nil then
+        if ((minutes % weather_config["interval"]) == 0 and seconds < 4) or util.file_exists(weather_config["data_file"]) == false then
+            if weather_config["api_key"] == nil then
                 weather_data = "missing weather api key"
                 table.insert(cells, util.pad_string(1, 1, weather_data))
-            elseif config["status_bar"]["weather"]["location"] == nil then
+            elseif weather_config["location"] == nil then
                 weather_data = "missing weather location"
                 table.insert(cells, util.pad_string(1, 1, weather_data))
             else
-                appid = config["status_bar"]["weather"]["api_key"]
-                location = string.gsub(config["status_bar"]["weather"]["location"], " ", "%%20")
-                err = weather.write_data_file(config["status_bar"]["weather"]["data_file"], location, appid)
+                appid = weather_config["api_key"]
+                location = string.gsub(weather_config["location"], " ", "%%20")
+                err = weather.write_data_file(weather_config["data_file"], location, appid)
                 -- Do something with the error
             end
         else
-            if util.file_exists(config["status_bar"]["weather"]["data_file"]) then
+            if util.file_exists(weather_config["data_file"]) then
                 unit = "F"
-                if config["status_bar"]["weather"]["unit"] ~= "F" then
+                if weather_config["unit"] ~= "F" then
                     unit = "C"
                 end
                 degree_symbol = "°"
 
-                local weather_data = util.json_parse(config["status_bar"]["weather"]["data_file"])
+                local weather_data = util.json_parse(weather_config["data_file"])
                 if weather_data ~= nil then
-                    if (util.get_timestamp() - weather_data["timestamp"]) > (config["status_bar"]["weather"]["freshness_threshold"] * 60) then
+                    if (util.get_timestamp() - weather_data["timestamp"]) > (weather_config["freshness_threshold"] * 60) then
                         table.insert(cells, util.pad_string(2, 2, wezterm.nerdfonts.cod_bug .. " weather data is stale"))
                     else
                         icon_id = weather_data["weather"][1]["icon"]
@@ -119,10 +124,10 @@ function status_bar.update_status_bar(cwd)
                         weather_status = {
                             current .. degree_symbol .. unit .. " " .. icon
                         }
-                        if config["status_bar"]["weather"]["show_low"] then
+                        if weather_config["show_low"] then
                             table.insert(weather_status, arrow_down .. " " .. low .. degree_symbol .. unit)
                         end
-                        if config["status_bar"]["weather"]["show_high"] then
+                        if weather_config["show_high"] then
                             table.insert(weather_status, arrow_up .. " " .. high .. degree_symbol .. unit)
                         end
                         table.insert(cells, util.pad_string(1, 1, table.concat(weather_status, " ")))
@@ -131,32 +136,32 @@ function status_bar.update_status_bar(cwd)
             end
         end
     else
-        if util.file_exists(config["status_bar"]["weather"]["data_file"]) then
-            os.remove(config["status_bar"]["weather"]["data_file"])
+        if util.file_exists(weather_config["data_file"]) then
+            os.remove(weather_config["data_file"])
         end
     end
 
     -- stock quotes
-    if config["status_bar"]["stock_quotes"]["enabled"] then
+    if stock_quotes_config["enabled"] then
         hours, minutes, seconds = util.get_hms()
-        if ((minutes % config["status_bar"]["stock_quotes"]["interval"]) == 0 and seconds < 4) or util.file_exists(config["status_bar"]["stock_quotes"]["data_file"]) == false then
-            local symbols = table.concat(config["status_bar"]["stock_quotes"]["symbols"], ",")
+        if ((minutes % stock_quotes_config["interval"]) == 0 and seconds < 4) or util.file_exists(stock_quotes_config["data_file"]) == false then
+            local symbols = table.concat(stock_quotes_config["symbols"], ",")
             local url = "https://query1.finance.yahoo.com/v7/finance/spark?symbols=" .. symbols
             success, stdout, stderr = wezterm.run_child_process({"curl", url})
             if success then
                 json_data = util.json_parse_string(stdout)
                 if json_data ~= nil then
                     json_data["timestamp"] = util.get_timestamp()
-                    file = io.open(config["status_bar"]["stock_quotes"]["data_file"], "w")
+                    file = io.open(stock_quotes_config["data_file"], "w")
                     file:write(wezterm.json_encode(json_data))
                     file:close()
                 end
             end
         else
-            if util.file_exists(config["status_bar"]["stock_quotes"]["data_file"]) then
-                market_data = util.json_parse(config["status_bar"]["stock_quotes"]["data_file"])
+            if util.file_exists(stock_quotes_config["data_file"]) then
+                market_data = util.json_parse(stock_quotes_config["data_file"])
                 if market_data ~= nil then
-                    if (util.get_timestamp() - market_data["timestamp"]) > (config["status_bar"]["stock_quotes"]["freshness_threshold"] * 60) then
+                    if (util.get_timestamp() - market_data["timestamp"]) > (stock_quotes_config["freshness_threshold"] * 60) then
                         table.insert(cells, util.pad_string(2, 2, wezterm.nerdfonts.cod_bug .. " stock data is stale"))
                     else
                         if market_data["spark"] ~= nil and market_data["spark"]["result"] ~= nil and #market_data["spark"]["result"] > 0 then
@@ -185,8 +190,8 @@ function status_bar.update_status_bar(cwd)
             end
         end
     else
-        if util.file_exists(config["status_bar"]["stock_quotes"]["data_file"]) then
-            os.remove(config["status_bar"]["stock_quotes"]["data_file"])
+        if util.file_exists(stock_quotes_config["data_file"]) then
+            os.remove(stock_quotes_config["data_file"])
         end
     end
 
@@ -194,14 +199,14 @@ function status_bar.update_status_bar(cwd)
     -- This MUST run as the last scheduled check as it will interfere with other checks on Macs
     -- 'softwareupdate --list' takes ~6 seconds to run and so the other checks cannot run in a timely manner
     -- I'll find a better way to do this
-    if config["status_bar"]["system_updates"]["enabled"] then
+    if system_updates_config["enabled"] then
         hours, minutes, seconds = util.get_hms()
-        if ((minutes % config["status_bar"]["system_updates"]["interval"]) == 0 and seconds < 4) or util.file_exists(config["status_bar"]["system_updates"]["data_file"]) == false then
-            system_updates.find_updates(config["status_bar"]["system_updates"]["data_file"])
+        if ((minutes % system_updates_config["interval"]) == 0 and seconds < 4) or util.file_exists(system_updates_config["data_file"]) == false then
+            system_updates.find_updates(system_updates_config["data_file"])
         else
-            update_data = util.json_parse(config["status_bar"]["system_updates"]["data_file"])
+            update_data = util.json_parse(system_updates_config["data_file"])
             if update_data ~= nil then
-                if (util.get_timestamp() - update_data["timestamp"]) > (config["status_bar"]["system_updates"]["freshness_threshold"] * 60) then
+                if (util.get_timestamp() - update_data["timestamp"]) > (system_updates_config["freshness_threshold"] * 60) then
                     table.insert(cells, util.pad_string(2, 2, wezterm.nerdfonts.cod_bug .. " system update data is stale"))
                 else
                     update_status = wezterm.nerdfonts.md_floppy .. " updates: " .. update_data["count"]
@@ -210,21 +215,20 @@ function status_bar.update_status_bar(cwd)
             end
         end
     else
-        if util.file_exists(config["status_bar"]["system_updates"]["data_file"]) then
-            os.remove(config["status_bar"]["system_updates"]["data_file"])
+        if util.file_exists(system_updates_config["data_file"]) then
+            os.remove(system_updates_config["data_file"])
         end
     end
 
     -- system status
-    if config["status_bar"]["system_status"]["enabled"] then
-        data_file = "/tmp/wsstats.json"
-        local values = util.json_parse(data_file)
+    if system_status_config["enabled"] then
+        local values = util.json_parse(system_status_config["data_file"])
         if values ~= nil then
             -- check for freshness
-            if (util.get_timestamp() - values["timestamp"]) > (config["status_bar"]["system_status"]["freshness_threshold"] * 60) then
+            if (util.get_timestamp() - values["timestamp"]) > (system_status_config["freshness_threshold"] * 60) then
                 table.insert(cells, util.pad_string(2, 2, wezterm.nerdfonts.cod_bug .. " wsstats data is stale, please verify it's still running"))
             else
-                if config["status_bar"]["system_status"]["toggles"]["show_uptime"] then
+                if system_status_config["toggles"]["show_uptime"] then
                     if values["host"] ~= nil and values["host"]["information"] ~= nil then
                         uptime = {"up"}
                         seconds = values["host"]["information"]["uptime"]
@@ -246,7 +250,7 @@ function status_bar.update_status_bar(cwd)
                     end
                 end
 
-                if config["status_bar"]["system_status"]["toggles"]["show_cpu_usage"] then
+                if system_status_config["toggles"]["show_cpu_usage"] then
                     if values["cpu"] ~= nil then
                         cpu_usage = wezterm.nerdfonts.oct_cpu .. " " .. "user " .. values["cpu"][1]["user"] .. "%, sys " .. values["cpu"][1]["system"] .. "%, idle " .. values["cpu"][1]["idle"] .. "%"
                     else
@@ -255,7 +259,7 @@ function status_bar.update_status_bar(cwd)
                     table.insert(cells, util.pad_string(2, 2, cpu_usage))
                 end
 
-                if config["status_bar"]["system_status"]["toggles"]["show_load_averages"] then
+                if system_status_config["toggles"]["show_load_averages"] then
                     if values["load"] ~= nil then
                         load1 = string.format("%.2f", values["load"]["load1"])
                         load5 = string.format("%.2f", values["load"]["load5"])
@@ -267,7 +271,7 @@ function status_bar.update_status_bar(cwd)
                     table.insert(cells, util.pad_string(2, 2, load_averages))
                 end
 
-                if config["status_bar"]["system_status"]["toggles"]["show_memory_usage"] then
+                if system_status_config["toggles"]["show_memory_usage"] then
                     if values["memory"] ~= nil then
                         memory_usage = wezterm.nerdfonts.md_memory .. " " .. util.byte_converter(values["memory"]["used"], "Gi") .. " / " .. util.byte_converter(values["memory"]["total"], "Gi")
                     else
@@ -276,8 +280,8 @@ function status_bar.update_status_bar(cwd)
                     table.insert(cells, util.pad_string(2, 2, memory_usage))
                 end
 
-                if config["status_bar"]["system_status"]["toggles"]["show_disk_usage"] then
-                    disk_list = config["status_bar"]["system_status"]["disk_list"]
+                if system_status_config["toggles"]["show_disk_usage"] then
+                    disk_list = system_status_config["disk_list"]
                     if disk_list ~= nil then
                         if #disk_list > 0 then
                             if values["disk"] ~= nil then
@@ -298,8 +302,8 @@ function status_bar.update_status_bar(cwd)
                     end
                 end
 
-                if config["status_bar"]["system_status"]["toggles"]["show_network_throughput"] then
-                    network_interface_list = config["status_bar"]["system_status"]["network_interface_list"]
+                if system_status_config["toggles"]["show_network_throughput"] then
+                    network_interface_list = system_status_config["network_interface_list"]
                     if network_interface_list ~= nil then
                         if #network_interface_list > 0 then
                             if values["network"] ~= nil then
