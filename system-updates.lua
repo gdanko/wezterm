@@ -29,9 +29,44 @@ function system_updates.find_updates(data_file)
             file:write(wezterm.json_encode(output))
             file:close()
         end
+    elseif config["os_name"] == "linux" then
+        local distro = ""
+        success, stdout, stderr = wezterm.run_child_process({"lsb_release", "-a"})
+        if success then
+            index_ubuntu = string.find(stdout, "Ubuntu")
+            index_fedora = string.find(stdout, "Fedora")
+            if index_ubuntu then
+                success, stdout, stderr = wezterm.run_child_process({"/usr/lib/update-notifier/apt-check", "--human-readable"})
+                if success then
+                    lines = wezterm.split_by_newlines(stdout)
+                    match = lines[1]:match("^%d+")
+                    if match then
+                        output = {
+                            timestamp = util.get_timestamp(),
+                            os = "ubuntu",
+                            count = match,
+                        }
+                        file = io.open(data_file, "w")
+                        file:write(wezterm.json_encode(output))
+                        file:close()
+                    end
+                end
+            elseif index_fedora then
+                success, stdout, stderr = wezterm.run_child_process({"yum", "list", "updates"})
+                if success then
+                    lines = wezterm.split_by_newlines(stdout)
+                    output = {
+                        timestamp = util.get_timestamp(),
+                        os = "fedora",
+                        count = #lines,
+                    }
+                    file = io.open(data_file, "w")
+                    file:write(wezterm.json_encode(output))
+                    file:close()
+                end
+            end
+        end
     end
-    -- debian
-    -- /usr/lib/update-notifier/apt-check --human-readable
 end
 
 return system_updates
