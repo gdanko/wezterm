@@ -39,6 +39,13 @@ function system_updates.find_updates(data_file)
                 lines = wezterm.split_by_newlines(stdout)
                 output["count"] = #lines
             end
+        elseif config["os_distro"] == "arch" then
+            os.execute("pacman -Sy")
+            success, stdout, stderr = wezterm.run_child_process({"pacman", "-Qu"})
+            if success then
+                lines = wezterm.split_by_newlines(stdout)
+                output["count"] = #lines
+            end
         elseif config["os_distro"] == "debian" or config["os_distro"] == "ubuntu" then
             success, stdout, stderr = wezterm.run_child_process({"/usr/lib/update-notifier/apt-check", "--human-readable"})
             if success then
