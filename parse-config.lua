@@ -44,7 +44,7 @@ function config_parser.get_config()
                 }
             },
             stock_quotes = {
-                data_file = util.path_join({wezterm.config_dir, "data", "stock-quotes.json"}),
+                data_file = util.path_join({wezterm.config_dir, wezterm.GLOBAL.datadir, "stock-quotes.json"}),
                 enabled = true,
                 freshness_threshold = 60, -- minutes
                 interval = 15, -- decreasing too aggressively might get you rate-limited
@@ -54,7 +54,7 @@ function config_parser.get_config()
                 }
             },
             system_updates = {
-                data_file = util.path_join({wezterm.config_dir, "data", "system-updates.json"}),
+                data_file = util.path_join({wezterm.config_dir, wezterm.GLOBAL.datadir, "system-updates.json"}),
                 enabled = true,
                 freshness_threshold = 60, -- minutes
                 interval = 30,
@@ -68,7 +68,7 @@ function config_parser.get_config()
             },
             weather = {
                 api_key = nil, -- https://openweathermap.org/
-                data_file = util.path_join({wezterm.config_dir, "data", "weather.json"}),
+                data_file = util.path_join({wezterm.config_dir, wezterm.GLOBAL.datadir, "weather.json"}),
                 enabled = false,
                 freshness_threshold = 30, -- minutes
                 interval = 15, -- decreasing too aggressively might get you rate-limited
