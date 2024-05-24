@@ -29,6 +29,7 @@ function config_parser.get_config()
         status_bar = {
             update_interval = 3,
             system_status = { -- requires github.com/gdanko/wsstats
+                data_file = "/tmp/wsstats.json",
                 disk_list = {{mount_point = "/", unit = "Gi"}},
                 enabled = true,
                 freshness_threshold = 5, -- minutes
