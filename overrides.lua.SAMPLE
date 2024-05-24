@@ -3,14 +3,16 @@ local wezterm = require "wezterm"
 local overrides = {}
 
 function overrides.override_config(config)
-    if wezterm.hostname() == "test-host" then
-        config["display"]["font_size"] = 12
-        config["display"]["color_scheme"]["enable_gradient"] = true
-        config["status_bar"]["stock_quotes"]["symbols"] = {"MSFT", "AAPL"}
-        -- Valid units are K, M, G, T, P, E, Ki, Mi, Gi, Ti, Pi, Ei
-        config["status_bar"]["system_status"]["disk_list"] = {{mount_point = "/", unit = "Gi"}, {mount_point = "/work", unit = "Ti"}}
-        config["status_bar"]["system_status"]["network_interface_list"] = {"wlo1"}
-    end
+    config["display"]["color_scheme"]["enable_gradient"] = true
+    config["display"]["font_size"] = 12
+    config["status_bar"]["stock_quotes"]["symbols"] = {"MSFT", "AAPL"}
+    config["status_bar"]["system_status"]["disk_list"] = {{mount_point = "/", unit = "Gi"}, {mount_point = "/work", unit = "Ti"}}
+    -- Valid units are K, M, G, T, P, E, Ki, Mi, Gi, Ti, Pi, Ei
+    config["status_bar"]["system_status"]["network_interface_list"] = {"wlo1"}
+    config["status_bar"]["weather"]["api_key"] = "<mykey>"
+    config["status_bar"]["weather"]["enabled"] = true
+    config["status_bar"]["weather"]["location"] = "Los Angeles, CA, US"
+    config["status_bar"]["weather"]["unit"] = "C"
     return config
 end
 
