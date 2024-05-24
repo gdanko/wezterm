@@ -6,7 +6,6 @@ config_parser = {}
 local datadir = util.path_join({wezterm.config_dir, "data"})
 
 function config_parser.get_config()
-    -- default config
     local config = {
         display = {
             font_size = 14,
@@ -89,6 +88,28 @@ function config_parser.get_config()
     elseif (wezterm.target_triple == "x86_64-unknown-linux-gnu") or (wezterm.target_triple == "aarch64-unknown-linux-gnu") then
         config["keymod"] = "CTRL"
         config["os_name"] = "linux"
+    end
+
+    -- find the Linux distro
+    if config["os_name"] == "linux" then
+        if util.file_exists("/etc/os-release") then
+            local file = io.open("/etc/os-release", "r")
+            if file then
+                for line in file:lines() do
+                    if string.match(line, "^ID=") then
+                        os_distro = line:match('ID="(.-)"$') or line:match('ID=(.-)$')
+                        if os_distro then
+                            config["os_distro"] = os_distro
+                        end
+                    elseif string.match(line, "^VERSION_ID=") then
+                        os_version = line:match('VERSION_ID="(.-)"$') or line:match('VERSION_ID=(.-)$')
+                        if os_version then
+                            config["os_version"] = os_version
+                        end
+                    end
+                end
+            end
+        end
     end
 
     if util.file_exists( util.path_join({wezterm.config_dir, "overrides.lua"})) then
