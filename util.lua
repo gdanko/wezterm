@@ -69,12 +69,12 @@ function process_bytes(num)
 end
 
 function pad_string(pad_left, pad_right, input_string)
-    return (" "):rep(pad_left) .. input_string .. (" "):rep(pad_right)
-    -- if input_string ~= nil then
-    --     return (" "):rep(pad_left) .. input_string .. (" "):rep(pad_right)
-    -- else
-    --     return input_string
-    -- end
+    -- return (" "):rep(pad_left) .. input_string .. (" "):rep(pad_right)
+    if input_string ~= nil then
+        return (" "):rep(pad_left) .. input_string .. (" "):rep(pad_right)
+    else
+        return input_string
+    end
 end
 
 function file_exists(filename)
