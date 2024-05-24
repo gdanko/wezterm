@@ -130,6 +130,10 @@ function status_bar.update_status_bar(cwd)
                 end
             end
         end
+    else
+        if util.file_exists(data_file) then
+            os.remove(data_file)
+        end
     end
 
     -- stock quotes
@@ -181,6 +185,10 @@ function status_bar.update_status_bar(cwd)
                 end
             end
         end
+    else
+        if util.file_exists(data_file) then
+            os.remove(data_file)
+        end
     end
 
     -- system updates
@@ -202,6 +210,10 @@ function status_bar.update_status_bar(cwd)
                     table.insert(cells, util.pad_string(2, 2, update_status))
                 end
             end
+        end
+    else
+        if util.file_exists(data_file) then
+            os.remove(data_file)
         end
     end
 
