@@ -195,7 +195,7 @@ function status_bar.update_status_bar(cwd)
         else
             update_data = util.json_parse(data_file)
             if update_data ~= nil then
-                if (util.get_timestamp() - market_data["timestamp"]) > (config["status_bar"]["system_updates"]["freshness_threshold"] * 60) then
+                if (util.get_timestamp() - update_data["timestamp"]) > (config["status_bar"]["system_updates"]["freshness_threshold"] * 60) then
                     table.insert(cells, util.pad_string(2, 2, wezterm.nerdfonts.cod_bug .. " system update data is stale"))
                 else
                     update_status = wezterm.nerdfonts.md_floppy .. " updates: " .. update_data["count"]
