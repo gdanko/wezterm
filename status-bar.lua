@@ -78,7 +78,7 @@ function status_bar.update_status_bar(cwd)
     if config["status_bar"]["weather"]["enabled"] then
         data_file = util.path_join({wezterm.config_dir, "data", "weather.json"})
         hours, minutes, seconds = util.get_hms()
-        if ((minutes % config["status_bar"]["weather"]["interval"]) == 0 and seconds < 4) or util.file_exists(data_file) == false then
+        if ((minutes % config["status_bar"]["weather"]["interval"]) == 0 and seconds < 4) or util.file_exists(config["status_bar"]["weather"]["data_file"]) == false then
             if config["status_bar"]["weather"]["api_key"] == nil then
                 weather_data = "missing weather api key"
                 table.insert(cells, util.pad_string(1, 1, weather_data))
@@ -88,18 +88,18 @@ function status_bar.update_status_bar(cwd)
             else
                 appid = config["status_bar"]["weather"]["api_key"]
                 location = string.gsub(config["status_bar"]["weather"]["location"], " ", "%%20")
-                err = weather.write_data_file(data_file, location, appid)
+                err = weather.write_data_file(config["status_bar"]["weather"]["data_file"], location, appid)
                 -- Do something with the error
             end
         else
-            if util.file_exists(data_file) then
+            if util.file_exists(config["status_bar"]["weather"]["data_file"]) then
                 unit = "F"
                 if config["status_bar"]["weather"]["unit"] ~= "F" then
                     unit = "C"
                 end
                 degree_symbol = "°"
 
-                local weather_data = util.json_parse(data_file)
+                local weather_data = util.json_parse(config["status_bar"]["weather"]["data_file"])
                 if weather_data ~= nil then
                     if (util.get_timestamp() - weather_data["timestamp"]) > (config["status_bar"]["weather"]["freshness_threshold"] * 60) then
                         table.insert(cells, util.pad_string(2, 2, wezterm.nerdfonts.cod_bug .. " weather data is stale"))
@@ -131,16 +131,15 @@ function status_bar.update_status_bar(cwd)
             end
         end
     else
-        if util.file_exists(data_file) then
-            os.remove(data_file)
+        if util.file_exists(config["status_bar"]["weather"]["data_file"]) then
+            os.remove(config["status_bar"]["weather"]["data_file"])
         end
     end
 
     -- stock quotes
     if config["status_bar"]["stock_quotes"]["enabled"] then
-        data_file = util.path_join({wezterm.config_dir, "data", "stock-quotes.json"})
         hours, minutes, seconds = util.get_hms()
-        if ((minutes % config["status_bar"]["stock_quotes"]["interval"]) == 0 and seconds < 4) or util.file_exists(data_file) == false then
+        if ((minutes % config["status_bar"]["stock_quotes"]["interval"]) == 0 and seconds < 4) or util.file_exists(config["status_bar"]["stock_quotes"]["data_file"]) == false then
             local symbols = table.concat(config["status_bar"]["stock_quotes"]["symbols"], ",")
             local url = "https://query1.finance.yahoo.com/v7/finance/spark?symbols=" .. symbols
             success, stdout, stderr = wezterm.run_child_process({"curl", url})
@@ -148,14 +147,14 @@ function status_bar.update_status_bar(cwd)
                 json_data = util.json_parse_string(stdout)
                 if json_data ~= nil then
                     json_data["timestamp"] = util.get_timestamp()
-                    file = io.open(data_file, "w")
+                    file = io.open(config["status_bar"]["stock_quotes"]["data_file"], "w")
                     file:write(wezterm.json_encode(json_data))
                     file:close()
                 end
             end
         else
-            if util.file_exists(data_file) then
-                market_data = util.json_parse(data_file)
+            if util.file_exists(config["status_bar"]["stock_quotes"]["data_file"]) then
+                market_data = util.json_parse(config["status_bar"]["stock_quotes"]["data_file"])
                 if market_data ~= nil then
                     if (util.get_timestamp() - market_data["timestamp"]) > (config["status_bar"]["stock_quotes"]["freshness_threshold"] * 60) then
                         table.insert(cells, util.pad_string(2, 2, wezterm.nerdfonts.cod_bug .. " stock data is stale"))
@@ -186,8 +185,8 @@ function status_bar.update_status_bar(cwd)
             end
         end
     else
-        if util.file_exists(data_file) then
-            os.remove(data_file)
+        if util.file_exists(config["status_bar"]["stock_quotes"]["data_file"]) then
+            os.remove(config["status_bar"]["stock_quotes"]["data_file"])
         end
     end
 
@@ -196,12 +195,11 @@ function status_bar.update_status_bar(cwd)
     -- 'softwareupdate --list' takes ~6 seconds to run and so the other checks cannot run in a timely manner
     -- I'll find a better way to do this
     if config["status_bar"]["system_updates"]["enabled"] then
-        data_file = util.path_join({wezterm.config_dir, "data", "system-updates.json"})
         hours, minutes, seconds = util.get_hms()
-        if ((minutes % config["status_bar"]["system_updates"]["interval"]) == 0 and seconds < 4) or util.file_exists(data_file) == false then
-            system_updates.find_updates(data_file)
+        if ((minutes % config["status_bar"]["system_updates"]["interval"]) == 0 and seconds < 4) or util.file_exists(config["status_bar"]["system_updates"]["data_file"]) == false then
+            system_updates.find_updates(config["status_bar"]["system_updates"]["data_file"])
         else
-            update_data = util.json_parse(data_file)
+            update_data = util.json_parse(config["status_bar"]["system_updates"]["data_file"])
             if update_data ~= nil then
                 if (util.get_timestamp() - update_data["timestamp"]) > (config["status_bar"]["system_updates"]["freshness_threshold"] * 60) then
                     table.insert(cells, util.pad_string(2, 2, wezterm.nerdfonts.cod_bug .. " system update data is stale"))
@@ -212,8 +210,8 @@ function status_bar.update_status_bar(cwd)
             end
         end
     else
-        if util.file_exists(data_file) then
-            os.remove(data_file)
+        if util.file_exists(config["status_bar"]["system_updates"]["data_file"]) then
+            os.remove(config["status_bar"]["system_updates"]["data_file"])
         end
     end
 
