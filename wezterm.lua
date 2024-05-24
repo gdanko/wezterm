@@ -8,9 +8,9 @@ local act = wezterm.action
 
 local user_config = config_parser.get_config()
 
-wezterm.GLOBAL.datadir = util.path_join({wezterm.config_dir, "data"})
-if not util.is_dir(wezterm.GLOBAL.datadir) then
-    os.execute("mkdir -p " .. wezterm.GLOBAL.datadir)
+datadir = util.path_join({wezterm.config_dir, "data"})
+if not util.is_dir(datadir) then
+    os.execute("mkdir -p " .. datadir)
 end
 
 -- Enable/disable config blocks
