@@ -41,7 +41,8 @@ function config_parser.get_config()
                     show_load_averages = false,
                     show_memory_usage = true,
                     show_network_throughput = true,
-                    show_uptime = false
+                    show_uptime = false,
+                    show_wifi_status = true, -- Linux only
                 }
             },
             stock_quotes = {
