@@ -4,6 +4,9 @@ local util = require "util"
 config_parser = {}
 
 local datadir = util.path_join({wezterm.config_dir, "data"})
+if not util.is_dir(datadir) then
+    os.execute("mkdir -p " .. datadir)
+end
 
 function config_parser.get_config()
     local config = {

@@ -8,11 +8,6 @@ local act = wezterm.action
 
 local user_config = config_parser.get_config()
 
-datadir = util.path_join({wezterm.config_dir, "data"})
-if not util.is_dir(datadir) then
-    os.execute("mkdir -p " .. datadir)
-end
-
 -- Enable/disable config blocks
 config_appearance_enabled           = true
 config_color_scheme_enabled         = true
