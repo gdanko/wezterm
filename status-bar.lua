@@ -172,13 +172,15 @@ function status_bar.update_status_bar(cwd)
                                     local price = meta["regularMarketPrice"]
                                     local last = meta["previousClose"]
                                     if price > last then
-                                        updown = arrow_up
+                                        updown_arrow = arrow_up
+                                        updown_amount = string.format("%.2f", price - last)
                                         pct_change = string.format("%.2f", ((price - last) / last) * 100)
                                     else
-                                        updown = arrow_down
+                                        updown_arrow = arrow_down
+                                        updown_amount = string.format("%.2f", last - price)
                                         pct_change = string.format("%.2f", ((last - price) / last) * 100)
                                     end
-                                    stock_quote = wezterm.nerdfonts.cod_graph_line .. " " .. symbol .. " $" .. price .. " " .. updown .. pct_change .. "%"
+                                    stock_quote = wezterm.nerdfonts.cod_graph_line .. " " .. symbol .. " $" .. price .. " " .. updown_arrow .. "$" .. updown_amount .. " (" .. pct_change .. "%)"
                                     table.insert(cells, util.pad_string(2, 2, stock_quote))
                                 end
                             end
