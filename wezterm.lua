@@ -1,8 +1,8 @@
 local color_config = require "color-config"
+local config_parser = require "parse-config"
 local status_bar = require "status-bar"
 local util = require "util"
 local wezterm = require "wezterm"
-local config_parser = require "parse-config"
 
 local act = wezterm.action
 
