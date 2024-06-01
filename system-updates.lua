@@ -47,13 +47,10 @@ function system_updates.find_updates(data_file)
                 output["count"] = #lines
             end
         elseif config["os_distro"] == "debian" or config["os_distro"] == "ubuntu" then
-            success, stdout, stderr = wezterm.run_child_process({"/usr/lib/update-notifier/apt-check", "--human-readable"})
+            success, stdout, stderr = wezterm.run_child_process({"apt", "list", "--upgradable"})
             if success then
                 lines = wezterm.split_by_newlines(stdout)
-                match = lines[1]:match("^%d+")
-                if match then
-                    output["count"] = match
-                end
+                output["count"] = #lines
             end
         elseif config["os_distro"] == "centos" or config["os_distro"] == "fedora" then
             success, stdout, stderr = wezterm.run_child_process({"yum", "list", "updates"})
