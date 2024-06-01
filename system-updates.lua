@@ -49,7 +49,12 @@ function system_updates.find_updates(data_file)
         elseif config["os_distro"] == "debian" or config["os_distro"] == "ubuntu" then
             success, stdout, stderr = wezterm.run_child_process({"apt", "list", "--upgradable"})
             if success then
-                lines = wezterm.split_by_newlines(stdout)
+                lines = {}
+                for _, line in ipairs(wezterm.split_by_newlines(stdout)) do
+                    if line:match("Listing...") == nil then
+                        table.insert(lines, line)
+                    end
+                end
                 output["count"] = #lines
             end
         elseif config["os_distro"] == "centos" or config["os_distro"] == "fedora" then
