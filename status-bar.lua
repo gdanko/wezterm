@@ -234,7 +234,7 @@ function status_bar.update_status_bar(cwd)
 
                 if system_status_config["toggles"]["show_memory_usage"] then
                     if values["memory"] ~= nil then
-                        memory_usage = wezterm.nerdfonts.md_memory .. " " .. util.byte_converter(values["memory"]["used"], "Gi") .. " / " .. util.byte_converter(values["memory"]["total"], "Gi")
+                        memory_usage = wezterm.nerdfonts.md_memory .. " " .. util.byte_converter(values["memory"]["used"], config["status_bar"]["system_status"]["memory_unit"]) .. " / " .. util.byte_converter(values["memory"]["total"], config["status_bar"]["system_status"]["memory_unit"])
                     else
                         memory_usage = wezterm.nerdfonts.cod_bug .. " Failed to get memory usage"
                     end

@@ -37,6 +37,7 @@ function config_parser.get_config()
                 disk_list = {{mount_point = "/", unit = "Gi"}},
                 enabled = true,
                 freshness_threshold = 5, -- minutes
+                memory_unit = "Gi",
                 network_interface_list = {},
                 toggles = {
                     show_cpu_usage = true,
