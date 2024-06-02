@@ -26,9 +26,6 @@ end
 
 function status_bar.update_status_bar(cwd)
     local cells = {}
-    local update_stock_quotes = false
-    local update_system_updates = false
-    local update_weather = false
 
     -- cwd and github branch information
     if config["status_bar"]["toggles"]["show_cwd"] then
@@ -128,7 +125,6 @@ function status_bar.update_status_bar(cwd)
             end
         end
     end
-
 
     -- stock quotes
     if stock_quotes_config["enabled"] then
