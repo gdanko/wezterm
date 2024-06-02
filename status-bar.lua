@@ -26,6 +26,9 @@ end
 
 function status_bar.update_status_bar(cwd)
     local cells = {}
+    local update_stock_quotes = false
+    local update_system_updates = false
+    local update_weather = false
 
     -- cwd and github branch information
     if config["status_bar"]["toggles"]["show_cwd"] then
@@ -81,9 +84,36 @@ function status_bar.update_status_bar(cwd)
 
     -- weather
     if weather_config["enabled"] then
-        data_file = util.path_join({wezterm.config_dir, "data", "weather.json"})
-        hours, minutes, seconds = util.get_hms()
-        if ((minutes % weather_config["interval"]) == 0 and seconds < 4) or util.file_exists(weather_config["data_file"]) == false then
+        action, weather_data = util.determine_action(weather_config)
+        if action == "display" then
+            unit = "F"
+            if weather_config["unit"] ~= "F" then
+                unit = "C"
+            end
+            degree_symbol = "°"
+            icon_id = weather_data["weather"][1]["icon"]
+            condition_id = weather_data["weather"][1]["id"]
+            current = weather_data["main"]["temp"]
+            high = weather_data["main"]["temp_max"]
+            low = weather_data["main"]["temp_min"]
+            if unit == "C" then
+                current = util.farenheit_to_celsius(current)
+                high = util.farenheit_to_celsius(high)
+                low = util.farenheit_to_celsius(low)
+            end
+            icon = weather.get_icon(icon_id, condition_id)
+
+            weather_status = {
+                current .. degree_symbol .. unit .. " " .. icon
+            }
+            if weather_config["show_low"] then
+                table.insert(weather_status, arrow_down .. " " .. low .. degree_symbol .. unit)
+            end
+            if weather_config["show_high"] then
+                table.insert(weather_status, arrow_up .. " " .. high .. degree_symbol .. unit)
+            end
+            table.insert(cells, util.pad_string(1, 1, table.concat(weather_status, " ")))
+        elseif action == "update" then
             if weather_config["api_key"] == nil then
                 weather_data = "missing weather api key"
                 table.insert(cells, util.pad_string(1, 1, weather_data))
@@ -96,55 +126,36 @@ function status_bar.update_status_bar(cwd)
                 err = weather.write_data_file(weather_config["data_file"], location, appid)
                 -- Do something with the error
             end
-        else
-            if util.file_exists(weather_config["data_file"]) then
-                unit = "F"
-                if weather_config["unit"] ~= "F" then
-                    unit = "C"
-                end
-                degree_symbol = "°"
-
-                local weather_data = util.json_parse(weather_config["data_file"])
-                if weather_data ~= nil then
-                    if (util.get_timestamp() - weather_data["timestamp"]) > (weather_config["freshness_threshold"] * 60) then
-                        table.insert(cells, util.pad_string(2, 2, wezterm.nerdfonts.cod_bug .. " weather data is stale"))
-                    else
-                        icon_id = weather_data["weather"][1]["icon"]
-                        condition_id = weather_data["weather"][1]["id"]
-                        current = weather_data["main"]["temp"]
-                        high = weather_data["main"]["temp_max"]
-                        low = weather_data["main"]["temp_min"]
-                        if unit == "C" then
-                            current = util.farenheit_to_celsius(current)
-                            high = util.farenheit_to_celsius(high)
-                            low = util.farenheit_to_celsius(low)
-                        end
-                        icon = weather.get_icon(icon_id, condition_id)
-
-                        weather_status = {
-                            current .. degree_symbol .. unit .. " " .. icon
-                        }
-                        if weather_config["show_low"] then
-                            table.insert(weather_status, arrow_down .. " " .. low .. degree_symbol .. unit)
-                        end
-                        if weather_config["show_high"] then
-                            table.insert(weather_status, arrow_up .. " " .. high .. degree_symbol .. unit)
-                        end
-                        table.insert(cells, util.pad_string(1, 1, table.concat(weather_status, " ")))
-                    end
-                end
-            end
-        end
-    else
-        if util.file_exists(weather_config["data_file"]) then
-            os.remove(weather_config["data_file"])
         end
     end
 
+
     -- stock quotes
     if stock_quotes_config["enabled"] then
-        hours, minutes, seconds = util.get_hms()
-        if ((minutes % stock_quotes_config["interval"]) == 0 and seconds < 4) or util.file_exists(stock_quotes_config["data_file"]) == false then
+        action, market_data = util.determine_action(stock_quotes_config)
+        if action == "display" then
+            if market_data["spark"] ~= nil and market_data["spark"]["result"] ~= nil and #market_data["spark"]["result"] > 0 then
+                for _, block in ipairs(market_data["spark"]["result"]) do
+                    symbol = block["symbol"]
+                    meta = block["response"][1]["meta"]
+                    if meta["previousClose"] ~= nil and meta["regularMarketPrice"] ~= nil then
+                        local price = meta["regularMarketPrice"]
+                        local last = meta["previousClose"]
+                        if price > last then
+                            updown_arrow = arrow_up
+                            updown_amount = string.format("%.2f", price - last)
+                            pct_change = string.format("%.2f", ((price - last) / last) * 100)
+                        else
+                            updown_arrow = arrow_down
+                            updown_amount = string.format("%.2f", last - price)
+                            pct_change = string.format("%.2f", ((last - price) / last) * 100)
+                        end
+                        stock_quote = wezterm.nerdfonts.cod_graph_line .. " " .. symbol .. " $" .. price .. " " .. updown_arrow .. "$" .. updown_amount .. " (" .. pct_change .. "%)"
+                        table.insert(cells, util.pad_string(2, 2, stock_quote))
+                    end
+                end
+            end
+        elseif action == "update" then
             local symbols = table.concat(stock_quotes_config["symbols"], ",")
             local url = "https://query1.finance.yahoo.com/v7/finance/spark?symbols=" .. symbols
             success, stdout, stderr = wezterm.run_child_process({"curl", url})
@@ -157,43 +168,6 @@ function status_bar.update_status_bar(cwd)
                     file:close()
                 end
             end
-        else
-            if util.file_exists(stock_quotes_config["data_file"]) then
-                market_data = util.json_parse(stock_quotes_config["data_file"])
-                if market_data ~= nil then
-                    if (util.get_timestamp() - market_data["timestamp"]) > (stock_quotes_config["freshness_threshold"] * 60) then
-                        table.insert(cells, util.pad_string(2, 2, wezterm.nerdfonts.cod_bug .. " stock data is stale"))
-                    else
-                        if market_data["spark"] ~= nil and market_data["spark"]["result"] ~= nil and #market_data["spark"]["result"] > 0 then
-                            for _, block in ipairs(market_data["spark"]["result"]) do
-                                symbol = block["symbol"]
-                                meta = block["response"][1]["meta"]
-                                if meta["previousClose"] ~= nil and meta["regularMarketPrice"] ~= nil then
-                                    local price = meta["regularMarketPrice"]
-                                    local last = meta["previousClose"]
-                                    if price > last then
-                                        updown_arrow = arrow_up
-                                        updown_amount = string.format("%.2f", price - last)
-                                        pct_change = string.format("%.2f", ((price - last) / last) * 100)
-                                    else
-                                        updown_arrow = arrow_down
-                                        updown_amount = string.format("%.2f", last - price)
-                                        pct_change = string.format("%.2f", ((last - price) / last) * 100)
-                                    end
-                                    stock_quote = wezterm.nerdfonts.cod_graph_line .. " " .. symbol .. " $" .. price .. " " .. updown_arrow .. "$" .. updown_amount .. " (" .. pct_change .. "%)"
-                                    table.insert(cells, util.pad_string(2, 2, stock_quote))
-                                end
-                            end
-                        end
-                    end
-                else
-                    stock_quote = wezterm.nerdfonts.cod_bug .. " Failed to parse stock data"
-                end
-            end
-        end
-    else
-        if util.file_exists(stock_quotes_config["data_file"]) then
-            os.remove(stock_quotes_config["data_file"])
         end
     end
 
@@ -202,23 +176,16 @@ function status_bar.update_status_bar(cwd)
     -- 'softwareupdate --list' takes ~6 seconds to run and so the other checks cannot run in a timely manner
     -- I'll find a better way to do this
     if system_updates_config["enabled"] then
-        hours, minutes, seconds = util.get_hms()
-        if ((minutes % system_updates_config["interval"]) == 0 and seconds < 4) or util.file_exists(system_updates_config["data_file"]) == false then
-            system_updates.find_updates(system_updates_config["data_file"])
-        else
-            update_data = util.json_parse(system_updates_config["data_file"])
-            if update_data ~= nil then
-                if (util.get_timestamp() - update_data["timestamp"]) > (system_updates_config["freshness_threshold"] * 60) then
-                    table.insert(cells, util.pad_string(2, 2, wezterm.nerdfonts.cod_bug .. " system update data is stale"))
-                else
-                    update_status = wezterm.nerdfonts.md_floppy .. " updates: " .. update_data["count"]
-                    table.insert(cells, util.pad_string(2, 2, update_status))
-                end
+        action, update_data = util.determine_action(system_updates_config)
+        if action == "display" then
+            if (util.get_timestamp() - update_data["timestamp"]) > (system_updates_config["freshness_threshold"] * 60) then
+                table.insert(cells, util.pad_string(2, 2, wezterm.nerdfonts.cod_bug .. " system update data is stale"))
+            else
+                update_status = wezterm.nerdfonts.md_floppy .. " updates: " .. update_data["count"]
+                table.insert(cells, util.pad_string(2, 2, update_status))
             end
-        end
-    else
-        if util.file_exists(system_updates_config["data_file"]) then
-            os.remove(system_updates_config["data_file"])
+        elseif action == "update" then
+            system_updates.find_updates(system_updates_config["data_file"])
         end
     end
 
