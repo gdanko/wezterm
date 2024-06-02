@@ -174,12 +174,8 @@ function status_bar.update_status_bar(cwd)
     if system_updates_config["enabled"] then
         action, update_data = util.determine_action(system_updates_config)
         if action == "display" then
-            if (util.get_timestamp() - update_data["timestamp"]) > (system_updates_config["freshness_threshold"] * 60) then
-                table.insert(cells, util.pad_string(2, 2, wezterm.nerdfonts.cod_bug .. " system update data is stale"))
-            else
-                update_status = wezterm.nerdfonts.md_floppy .. " updates: " .. update_data["count"]
-                table.insert(cells, util.pad_string(2, 2, update_status))
-            end
+            update_status = wezterm.nerdfonts.md_floppy .. " updates: " .. update_data["count"]
+            table.insert(cells, util.pad_string(2, 2, update_status))
         elseif action == "update" then
             system_updates.find_updates(system_updates_config["data_file"])
         end
