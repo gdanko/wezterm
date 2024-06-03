@@ -41,9 +41,10 @@ end
 
 function github.branch_info(cwd)
     local git_branch_name = branch_name(cwd)
-    local commits_behind = branch_commits_behind(cwd)
-    local commits_ahead = branch_commits_ahead(cwd)
-    local current_tag = branch_current_tag(cwd)
+    -- The following slow things down. Maybe there's a better way??
+    -- local commits_behind = branch_commits_behind(cwd)
+    -- local commits_ahead = branch_commits_ahead(cwd)
+    -- local current_tag = branch_current_tag(cwd)
     return git_branch_name, commits_behind, commits_ahead, current_tag
 end
 
