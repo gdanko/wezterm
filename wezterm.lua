@@ -122,6 +122,23 @@ local config_keys = {
     enabled = config_keys_enabled,
     keys = {
         {
+            key = "a",
+            mods = "SHIFT|CTRL",
+            action = wezterm.action_callback(function(window, pane)
+                local dims = pane:get_dimensions()
+                local txt = pane:get_text_from_region(0, dims.scrollback_top, 0, dims.scrollback_top + dims.scrollback_rows)
+                window:copy_to_clipboard(txt:match("^%s*(.-)%s*$")) -- trim leading and trailing whitespace
+            end)
+        },
+        {
+            key =  "a",
+            mods = user_config["keymod"],
+            action = wezterm.action_callback(function(window, pane)
+                local selected = pane:get_lines_as_text(pane:get_dimensions().scrollback_rows)
+                window:copy_to_clipboard(selected, "Clipboard")
+            end)
+        },
+        {
             key = "k",
             mods = user_config["keymod"],
             action = act.Multiple {
@@ -160,11 +177,6 @@ local config_keys = {
                     confirm = true
                 }
             }
-        },
-        {
-            key =  "a",
-            mods = user_config["keymod"],
-            action = act.EmitEvent "select-all-to-clipboard"
         },
     },
     swap_backspace_and_delete = false,
@@ -277,11 +289,6 @@ wezterm.on("format-tab-title", function(tab, tabs, panes, config, hover, max_wid
         { Background = { Color = color } },
         { Text = util.pad_string(2, 2, title)},
     }
-end)
-
-wezterm.on("select-all-to-clipboard", function(window, pane)
-    local selected = pane:get_lines_as_text(pane:get_dimensions().scrollback_rows)
-    window:copy_to_clipboard(selected, 'Clipboard')
 end)
 
 configs = {
