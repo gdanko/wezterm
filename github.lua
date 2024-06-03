@@ -30,6 +30,15 @@ function branch_commits_ahead(cwd)
     end
 end
 
+function foo(cwd)
+    local return_code, command_output = util.execute_command(cwd, "git rev-list --left-right --count main...test-branch")
+    if return_code == 0 then
+        return tonumber(command_output)
+    else
+        return nil
+    end
+end
+
 function branch_current_tag(cwd)
     local return_code, command_output = util.execute_command(cwd, "git describe --exact-match --tags $(git log -n1 --pretty='%h')")
     if return_code == 0 then
