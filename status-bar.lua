@@ -5,6 +5,7 @@ local github = require "github"
 local util = require "util"
 local weather = require "weather"
 local wezterm = require "wezterm"
+local wifi_status = require "wifi-status"
 
 local wsstats_json_file = "/tmp/wsstats.json"
 
@@ -288,46 +289,38 @@ function status_bar.update_status_bar(cwd)
                 end
 
                 if system_status_config["toggles"]["show_wifi_status"] then
-                    if config["os_name"] == "linux" then
-                        network_interface_list = system_status_config["network_interface_list"]
-                        if network_interface_list ~= nil then
-                            for _, ifname in ipairs(network_interface_list) do
-                                success, stdout, stderr = wezterm.run_child_process({"iwconfig", ifname})
-                                if success then
-                                    link_quality = stdout:match("Link Quality=(%d+/%d+)")
-                                    signal_level = stdout:match("Signal level=--(%d+) dBm")
-                                    if signal_level then
-                                        signal_level = tonumber(signal_level)
-                                        local strength = ""
-                                        local icon = ""
-                                        if signal_level == 30 then
-                                            strength = "perfect"
-                                            icon = wezterm.nerdfonts.md_wifi_strength_4
-                                        elseif signal_level > 30 and signal_level < 50 then
-                                            strength = "excellent"
-                                            icon = wezterm.nerdfonts.md_wifi_strength_4
-                                        elseif signal_level >=- 50 and signal_level < 60 then
-                                            strength = "good"
-                                            icon = wezterm.nerdfonts.md_wifi_strength_3
-                                        elseif signal_level >= 60 and signal_level < 67 then
-                                            strength = "decent"
-                                            icon = wezterm.nerdfonts.md_wifi_strength_2
-                                        elseif signal_level >= 67 and signal_level < 70 then
-                                            strength = "acceptable"
-                                            icon = wezterm.nerdfonts.md_wifi_strength_1
-                                        elseif signal_level >= 70 and signal_level < 80 then
-                                            strength = "unstable"
-                                            icon = wezterm.nerdfonts.md_wifi_strength_outline
-                                        elseif signal_level > 81 then
-                                            strength = "poor"
-                                            icon = wezterm.nerdfonts.md_wifi_strength_alert_outline
-                                        end
-                                        wezterm.log_info(strength)
-                                        wifi_status = icon .. " " .. strength .. " -" .. signal_level .. " " .. "dBm"
-                                        table.insert(cells, util.pad_string(2, 2, wifi_status))
-                                    end
-                                end
+                    action, wifi_status_data = util.determine_action(config["status_bar"]["system_status"]["wifi_status"])
+                    if action == "update" then
+                        wifi_status.update_wifi_status()
+                    elseif action == "display" then
+                        for iface, signal_level in pairs(wifi_status_data["interfaces"]) do
+                            signal_level = tonumber(signal_level)
+                            local strength = ""
+                            local icon = ""
+                            if signal_level == 30 then
+                                strength = "perfect"
+                                icon = wezterm.nerdfonts.md_wifi_strength_4
+                            elseif signal_level > 30 and signal_level < 50 then
+                                strength = "excellent"
+                                icon = wezterm.nerdfonts.md_wifi_strength_4
+                            elseif signal_level >=- 50 and signal_level < 60 then
+                                strength = "good"
+                                icon = wezterm.nerdfonts.md_wifi_strength_3
+                            elseif signal_level >= 60 and signal_level < 67 then
+                                strength = "decent"
+                                icon = wezterm.nerdfonts.md_wifi_strength_2
+                            elseif signal_level >= 67 and signal_level < 70 then
+                                strength = "acceptable"
+                                icon = wezterm.nerdfonts.md_wifi_strength_1
+                            elseif signal_level >= 70 and signal_level < 80 then
+                                strength = "unstable"
+                                icon = wezterm.nerdfonts.md_wifi_strength_outline
+                            elseif signal_level > 81 then
+                                strength = "poor"
+                                icon = wezterm.nerdfonts.md_wifi_strength_alert_outline
                             end
+                            wifi_status = icon .. " " .. iface .. " " .. strength .. " -" .. signal_level .. " " .. "dBm"
+                            table.insert(cells, util.pad_string(2, 2, wifi_status))
                         end
                     end
                 end

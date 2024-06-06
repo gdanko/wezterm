@@ -46,7 +46,12 @@ function config_parser.get_config()
                     show_memory_usage = true,
                     show_network_throughput = true,
                     show_uptime = false,
-                    show_wifi_status = true, -- Linux only
+                    show_wifi_status = true,
+                },
+                wifi_status = {
+                    data_file = util.path_join({datadir, "wifi-status.json"}),
+                    freshness_threshold = 3, -- minutes
+                    interval = 1 -- minutes
                 }
             },
             stock_quotes = {

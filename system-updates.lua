@@ -27,7 +27,6 @@ function system_updates.find_updates(data_file)
             file:close()
         end
     elseif config["os_name"] == "linux" and config["os_distro"] ~= nil then
-        wezterm.log_info(config["os_distro"])
         output = {
             timestamp = util.get_timestamp(),
             os = config["os_distro"],
