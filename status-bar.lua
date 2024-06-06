@@ -81,6 +81,13 @@ function status_bar.update_status_bar(cwd)
 
     -- weather
     if weather_config["enabled"] then
+        -- Testing
+        -- https://github.com/chubin/wttr.in
+        -- url = string.format("wttr.in/%s?format=%%c%%t", weather_config["location"]:gsub(" ", "%%20"))
+        -- success, stdout, stderr = wezterm.run_child_process({"curl", url})
+        -- if success then
+        --     table.insert(cells, util.pad_string(1, 1, stdout))
+        -- end
         action, weather_data = util.determine_action(weather_config)
         if action == "display" then
             unit = "F"
@@ -328,7 +335,6 @@ function status_bar.update_status_bar(cwd)
                             end
                         end
                         output["timestamp"] = util.get_timestamp()
-                        wezterm.log_info(output)
                         local file = io.open(data_file, "w")
                         file:write(wezterm.json_encode(output))
                         file:close()
