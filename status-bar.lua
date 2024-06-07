@@ -83,54 +83,64 @@ function status_bar.update_status_bar(cwd)
     if weather_config["enabled"] then
         -- Testing
         -- https://github.com/chubin/wttr.in
-        -- url = string.format("wttr.in/%s?format=%%c%%t", weather_config["location"]:gsub(" ", "%%20"))
-        -- success, stdout, stderr = wezterm.run_child_process({"curl", url})
-        -- if success then
-        --     table.insert(cells, util.pad_string(1, 1, stdout))
-        -- end
-        action, weather_data = util.determine_action(weather_config)
-        if action == "display" then
-            unit = "F"
-            if weather_config["unit"] ~= "F" then
-                unit = "C"
-            end
-            degree_symbol = "°"
-            icon_id = weather_data["weather"][1]["icon"]
-            condition_id = weather_data["weather"][1]["id"]
-            current = weather_data["main"]["temp"]
-            high = weather_data["main"]["temp_max"]
-            low = weather_data["main"]["temp_min"]
-            if unit == "C" then
-                current = util.farenheit_to_celsius(current)
-                high = util.farenheit_to_celsius(high)
-                low = util.farenheit_to_celsius(low)
-            end
-            icon = weather.get_icon(icon_id, condition_id)
+        -- curl wttr.in/:help
+        local unit = ""
 
-            weather_status = {
-                current .. degree_symbol .. unit .. " " .. icon
-            }
-            if weather_config["show_low"] then
-                table.insert(weather_status, arrow_down .. " " .. low .. degree_symbol .. unit)
-            end
-            if weather_config["show_high"] then
-                table.insert(weather_status, arrow_up .. " " .. high .. degree_symbol .. unit)
-            end
-            table.insert(cells, util.pad_string(1, 1, table.concat(weather_status, " ")))
-        elseif action == "update" then
-            if weather_config["api_key"] == nil then
-                weather_data = "missing weather api key"
-                table.insert(cells, util.pad_string(1, 1, weather_data))
-            elseif weather_config["location"] == nil then
-                weather_data = "missing weather location"
-                table.insert(cells, util.pad_string(1, 1, weather_data))
-            else
-                appid = weather_config["api_key"]
-                location = string.gsub(weather_config["location"], " ", "%%20")
-                err = weather.write_data_file(weather_config["data_file"], location, appid)
-                -- Do something with the error
+        if weather_config["use_celsius"] then
+            unit = "&m"
+        end
+
+        if weather_config["location"] ~= nil then
+            url = string.format("wttr.in/%s?format=%%c%%t%s", weather_config["location"]:gsub(" ", "+"), unit)
+            success, stdout, stderr = wezterm.run_child_process({"curl", url})
+            if success then
+                table.insert(cells, util.pad_string(1, 1, stdout))
             end
         end
+
+        -- action, weather_data = util.determine_action(weather_config)
+        -- if action == "display" then
+        --     unit = "F"
+        --     if weather_config["unit"] ~= "F" then
+        --         unit = "C"
+        --     end
+        --     degree_symbol = "°"
+        --     icon_id = weather_data["weather"][1]["icon"]
+        --     condition_id = weather_data["weather"][1]["id"]
+        --     current = weather_data["main"]["temp"]
+        --     high = weather_data["main"]["temp_max"]
+        --     low = weather_data["main"]["temp_min"]
+        --     if unit == "C" then
+        --         current = util.farenheit_to_celsius(current)
+        --         high = util.farenheit_to_celsius(high)
+        --         low = util.farenheit_to_celsius(low)
+        --     end
+        --     icon = weather.get_icon(icon_id, condition_id)
+
+        --     weather_status = {
+        --         current .. degree_symbol .. unit .. " " .. icon
+        --     }
+        --     if weather_config["show_low"] then
+        --         table.insert(weather_status, arrow_down .. " " .. low .. degree_symbol .. unit)
+        --     end
+        --     if weather_config["show_high"] then
+        --         table.insert(weather_status, arrow_up .. " " .. high .. degree_symbol .. unit)
+        --     end
+        --     table.insert(cells, util.pad_string(1, 1, table.concat(weather_status, " ")))
+        -- elseif action == "update" then
+        --     if weather_config["api_key"] == nil then
+        --         weather_data = "missing weather api key"
+        --         table.insert(cells, util.pad_string(1, 1, weather_data))
+        --     elseif weather_config["location"] == nil then
+        --         weather_data = "missing weather location"
+        --         table.insert(cells, util.pad_string(1, 1, weather_data))
+        --     else
+        --         appid = weather_config["api_key"]
+        --         location = string.gsub(weather_config["location"], " ", "%%20")
+        --         err = weather.write_data_file(weather_config["data_file"], location, appid)
+        --         -- Do something with the error
+        --     end
+        -- end
     end
 
     -- stock quotes
