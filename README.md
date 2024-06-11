@@ -27,9 +27,9 @@ Clone the repository at the root of ~/.config. Pro tip, I use Dropbox so I can u
   * Memory Usage
   * Disk Usage
   * Network Throughput
-  * WiFi Signal Strength (Linux only)
+  * WiFi Signal Strength
 * System update count (currently MacOS, Alpine, Arch, CentOS, Debian, Fedora, Ubuntu)
-* Weather, with optional low/high (requires OpenWeatherMap API key)
+* Weather
 
 ## To-Do
 * Alphabetize the stocks in the status bar. They're rendered out of order sometimes.
