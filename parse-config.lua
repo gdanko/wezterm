@@ -58,6 +58,11 @@ function config_parser.get_config()
                 data_file = util.path_join({datadir, "stock-quotes.json"}),
                 enabled = true,
                 freshness_threshold = 60, -- minutes
+                indexes = {
+                    show_djia = false,
+                    show_nasdaq = false,
+                    show_sp500 = false,
+                },
                 interval = 15, -- decreasing too aggressively might get you rate-limited
                 symbols = {
                     "GOOG",
