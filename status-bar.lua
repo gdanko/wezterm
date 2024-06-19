@@ -174,8 +174,6 @@ function status_bar.update_status_bar(cwd)
                     end
                 end
 
-                -- try to add the indexes
-                wezterm.log_info(stock_quotes_config)
                 for _, block in ipairs(market_data["spark"]["result"]) do
                     symbol = block["symbol"]
                     if util.has_value(indexes, symbol) then
