@@ -194,30 +194,21 @@ function status_bar.update_status_bar(cwd)
                             end
                             if symbol == "DJIA" then
                                 if stock_quotes_config["indexes"]["show_djia"] then
-                                    table.insert(
-                                        index_data,
-                                        "DOW " .. updown_arrow .. " " .. pct_change .. "%"
-                                    )
+                                    table.insert(index_data, "DOW " .. updown_arrow .. " " .. pct_change .. "%")
                                 end
                             elseif symbol == "NQ=F" then
                                 if stock_quotes_config["indexes"]["show_nasdaq"] then
-                                    table.insert(
-                                        index_data,
-                                        "Nasdaq " .. updown_arrow .. " " .. pct_change .. "%"
-                                    )
+                                    table.insert(index_data, "Nasdaq " .. updown_arrow .. " " .. pct_change .. "%")
                                 end
                             elseif symbol == "^GSPC" then
                                 if stock_quotes_config["indexes"]["show_sp500"] then
-                                    table.insert(
-                                        index_data,
-                                        "S&P 500 " .. updown_arrow .. " " .. pct_change .. "%"
-                                    )
+                                    table.insert(index_data, "S&P 500 " .. updown_arrow .. " " .. pct_change .. "%")
                                 end
                             end
                         end
                     end
                 end
-                if #index_data > 1 then
+                if #index_data > 0 then
                     -- table.concat(stock_quotes_config["symbols"], ",")
                     table.insert(cells, wezterm.nerdfonts.cod_graph_line .. " " .. table.concat(index_data, "; "))
                 end
