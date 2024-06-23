@@ -146,84 +146,92 @@ function status_bar.update_status_bar(cwd)
     -- stock quotes
     if stock_quotes_config["enabled"] then
         local indexes = {"DJIA", "NQ=F", "^GSPC"}
-        local index_data = {
-           
-        }
+        local index_data = {}
         action, market_data = util.determine_action(stock_quotes_config)
         if action == "display" then
-            if market_data["spark"] ~= nil and market_data["spark"]["result"] ~= nil and #market_data["spark"]["result"] > 0 then
-                for _, block in ipairs(market_data["spark"]["result"]) do
-                    symbol = block["symbol"]
-                    if not util.has_value(indexes, symbol) then
-                        meta = block["response"][1]["meta"]
-                        if meta["previousClose"] ~= nil and meta["regularMarketPrice"] ~= nil then
-                            local price = meta["regularMarketPrice"]
-                            local last = meta["previousClose"]
-                            if price > last then
-                                updown_arrow = arrow_up
-                                updown_amount = string.format("%.2f", price - last)
-                                pct_change = string.format("%.2f", ((price - last) / last) * 100)
-                            else
-                                updown_arrow = arrow_down
-                                updown_amount = string.format("%.2f", last - price)
-                                pct_change = string.format("%.2f", ((last - price) / last) * 100)
-                            end
-                            stock_quote = wezterm.nerdfonts.cod_graph_line .. " " .. symbol .. " $" .. price .. " " .. updown_arrow .. "$" .. updown_amount .. " (" .. pct_change .. "%)"
-                            table.insert(cells, util.pad_string(2, 2, stock_quote))
+            for symbol, data in pairs(market_data["symbols"]) do
+                if not util.has_value(indexes, symbol) then
+                    if data["price"] ~= nil and data["last"] ~= nil then
+                        local price = data["price"]
+                        local last = data["last"]
+                        if price > last then
+                            updown_arrow = arrow_up
+                            updown_amount = string.format("%.2f", price - last)
+                            pct_change = string.format("%.2f", ((price - last) / last) * 100)
+                        else
+                            updown_arrow = arrow_down
+                            updown_amount = string.format("%.2f", last - price)
+                            pct_change = string.format("%.2f", ((last - price) / last) * 100)
                         end
+                        stock_quote = wezterm.nerdfonts.cod_graph_line .. " " .. symbol .. " $" .. price .. " " .. updown_arrow .. "$" .. updown_amount .. " (" .. pct_change .. "%)"
+                        table.insert(cells, util.pad_string(2, 2, stock_quote))
                     end
-                end
-
-                for _, block in ipairs(market_data["spark"]["result"]) do
-                    symbol = block["symbol"]
-                    if util.has_value(indexes, symbol) then
-                        meta = block["response"][1]["meta"]
-                        if meta["previousClose"] ~= nil and meta["regularMarketPrice"] ~= nil then
-                            local price = meta["regularMarketPrice"]
-                            local last = meta["previousClose"]
-                            if price > last then
-                                updown_arrow = arrow_up
-                                updown_amount = string.format("%.2f", price - last)
-                                pct_change = string.format("%.2f", ((price - last) / last) * 100)
-                            else
-                                updown_arrow = arrow_down
-                                updown_amount = string.format("%.2f", last - price)
-                                pct_change = string.format("%.2f", ((last - price) / last) * 100)
-                            end
-                            if symbol == "DJIA" then
-                                if stock_quotes_config["indexes"]["show_djia"] then
-                                    table.insert(index_data, "DOW " .. updown_arrow .. " " .. pct_change .. "%")
-                                end
-                            elseif symbol == "NQ=F" then
-                                if stock_quotes_config["indexes"]["show_nasdaq"] then
-                                    table.insert(index_data, "Nasdaq " .. updown_arrow .. " " .. pct_change .. "%")
-                                end
-                            elseif symbol == "^GSPC" then
-                                if stock_quotes_config["indexes"]["show_sp500"] then
-                                    table.insert(index_data, "S&P 500 " .. updown_arrow .. " " .. pct_change .. "%")
-                                end
-                            end
-                        end
-                    end
-                end
-                if #index_data > 0 then
-                    -- table.concat(stock_quotes_config["symbols"], ",")
-                    table.insert(cells, wezterm.nerdfonts.cod_graph_line .. " " .. table.concat(index_data, "; "))
                 end
             end
+
+            for symbol, data in pairs(market_data["symbols"]) do
+                if util.has_value(indexes, symbol) then
+                    if data["price"] ~= nil and data["last"] ~= nil then
+                        local price = data["price"]
+                        local last = data["last"]
+                        if price > last then
+                            updown_arrow = arrow_up
+                            updown_amount = string.format("%.2f", price - last)
+                            pct_change = string.format("%.2f", ((price - last) / last) * 100)
+                        else
+                            updown_arrow = arrow_down
+                            updown_amount = string.format("%.2f", last - price)
+                            pct_change = string.format("%.2f", ((last - price) / last) * 100)
+                        end
+                        if symbol == "DJIA" then
+                            if stock_quotes_config["indexes"]["show_djia"] then
+                                table.insert(index_data, "DOW " .. updown_arrow .. " " .. pct_change .. "%")
+                            end
+                        elseif symbol == "NQ=F" then
+                            if stock_quotes_config["indexes"]["show_nasdaq"] then
+                                table.insert(index_data, "Nasdaq " .. updown_arrow .. " " .. pct_change .. "%")
+                            end
+                        elseif symbol == "^GSPC" then
+                            if stock_quotes_config["indexes"]["show_sp500"] then
+                                table.insert(index_data, "S&P 500 " .. updown_arrow .. " " .. pct_change .. "%")
+                            end
+                        end
+                    end
+                end
+            end
+            if #index_data > 0 then
+                table.insert(cells, wezterm.nerdfonts.cod_graph_line .. " " .. table.concat(index_data, "; "))
+            end
         elseif action == "update" then
-            table.insert(stock_quotes_config["symbols"], "DJIA")
-            table.insert(stock_quotes_config["symbols"], "NQ=F")
-            table.insert(stock_quotes_config["symbols"], "^GSPC")
-            local symbols = table.concat(stock_quotes_config["symbols"], ",")
-            local url = "https://query1.finance.yahoo.com/v7/finance/spark?symbols=" .. symbols
+            local data = {
+                timestamp = util.get_timestamp(),
+                symbols = {},
+            }
+            local symbols_table = {"DJIA", "NQ=F", "^GSPC"}
+            for _, symbol in ipairs(stock_quotes_config["symbols"]) do
+                table.insert(symbols_table, symbol)
+            end
+            local url = "https://query1.finance.yahoo.com/v7/finance/spark?symbols=" .. table.concat(symbols_table, ",")
+            wezterm.log_info(url)
             success, stdout, stderr = wezterm.run_child_process({"curl", url})
             if success then
                 json_data = util.json_parse_string(stdout)
                 if json_data ~= nil then
-                    json_data["timestamp"] = util.get_timestamp()
+                    if json_data["spark"] ~= nil and json_data["spark"]["result"] ~= nil and #json_data["spark"]["result"] > 0 then
+                        for _, block in ipairs(json_data["spark"]["result"]) do
+                            symbol = block["symbol"]
+                            if data["symbols"][symbol] == nil then
+                                meta = block["response"][1]["meta"]
+                                data["symbols"][symbol] = {}
+                                data["symbols"][symbol]["price"] = meta["regularMarketPrice"]
+                                data["symbols"][symbol]["last"] = meta["previousClose"]
+                                data["symbols"][symbol]["currency"] = meta["currency"]
+                                data["symbols"][symbol]["symbol"] = meta["symbol"]
+                            end
+                        end
+                    end
                     file = io.open(stock_quotes_config["data_file"], "w")
-                    file:write(wezterm.json_encode(json_data))
+                    file:write(wezterm.json_encode(data))
                     file:close()
                 end
             end
