@@ -122,6 +122,11 @@ local config_keys = {
     enabled = config_keys_enabled,
     keys = {
         {
+            key = "r",
+            mods = "CMD|SHIFT",
+            action = wezterm.action.ReloadConfiguration,
+        },
+        {
             key = "a",
             mods = "SHIFT|CTRL",
             action = wezterm.action_callback(function(window, pane)
@@ -176,6 +181,38 @@ local config_keys = {
                 CloseCurrentTab = {
                     confirm = true
                 }
+            }
+        },
+        {
+            key = "l",
+            mods = user_config["keymod"],
+            action = wezterm.action.SplitPane {
+                direction = "Left",
+                size = { Percent = 50 },
+            }
+        },
+        {
+            key = "r",
+            mods = user_config["keymod"],
+            action = wezterm.action.SplitPane {
+                direction = "Right",
+                size = { Percent = 50 },
+            }
+        },
+        {
+            key = "u",
+            mods = user_config["keymod"],
+            action = wezterm.action.SplitPane {
+                direction = "Up",
+                size = { Percent = 50 },
+            }
+        },
+        {
+            key = "d",
+            mods = user_config["keymod"],
+            action = wezterm.action.SplitPane {
+                direction = "Down",
+                size = { Percent = 50 },
             }
         },
     },
