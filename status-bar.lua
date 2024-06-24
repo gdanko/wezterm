@@ -151,20 +151,22 @@ function status_bar.update_status_bar(cwd)
         if action == "display" then
             for symbol, data in pairs(market_data["symbols"]) do
                 if not util.has_value(indexes, symbol) then
-                    if data["price"] ~= nil and data["last"] ~= nil then
-                        local price = data["price"]
-                        local last = data["last"]
-                        if price > last then
-                            updown_arrow = arrow_up
-                            updown_amount = string.format("%.2f", price - last)
-                            pct_change = string.format("%.2f", ((price - last) / last) * 100)
-                        else
-                            updown_arrow = arrow_down
-                            updown_amount = string.format("%.2f", last - price)
-                            pct_change = string.format("%.2f", ((last - price) / last) * 100)
+                    if util.has_value(stock_quotes_config["symbols"], symbol) then
+                        if data["price"] ~= nil and data["last"] ~= nil then
+                            local price = data["price"]
+                            local last = data["last"]
+                            if price > last then
+                                updown_arrow = arrow_up
+                                updown_amount = string.format("%.2f", price - last)
+                                pct_change = string.format("%.2f", ((price - last) / last) * 100)
+                            else
+                                updown_arrow = arrow_down
+                                updown_amount = string.format("%.2f", last - price)
+                                pct_change = string.format("%.2f", ((last - price) / last) * 100)
+                            end
+                            stock_quote = wezterm.nerdfonts.cod_graph_line .. " " .. symbol .. " $" .. price .. " " .. updown_arrow .. "$" .. updown_amount .. " (" .. pct_change .. "%)"
+                            table.insert(cells, util.pad_string(2, 2, stock_quote))
                         end
-                        stock_quote = wezterm.nerdfonts.cod_graph_line .. " " .. symbol .. " $" .. price .. " " .. updown_arrow .. "$" .. updown_amount .. " (" .. pct_change .. "%)"
-                        table.insert(cells, util.pad_string(2, 2, stock_quote))
                     end
                 end
             end
