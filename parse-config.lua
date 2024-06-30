@@ -99,7 +99,7 @@ function config_parser.get_config()
         config["keymod"] = "SUPER"
         config["os_name"] = "darwin"
     elseif (wezterm.target_triple == "x86_64-unknown-linux-gnu") or (wezterm.target_triple == "aarch64-unknown-linux-gnu") then
-        config["keymod"] = "CTRL"
+        config["keymod"] = "SHIFT|CTRL"
         config["os_name"] = "linux"
     end
 
