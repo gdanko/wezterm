@@ -5,6 +5,7 @@ local github = require "github"
 local util = require "util"
 local weather = require "weather"
 local wezterm = require "wezterm"
+local wifi_status = require "wifi-status"
 
 local wsstats_json_file = "/tmp/wsstats.json"
 
@@ -214,7 +215,6 @@ function status_bar.update_status_bar(cwd)
                 table.insert(symbols_table, symbol)
             end
             local url = "https://query1.finance.yahoo.com/v7/finance/spark?symbols=" .. table.concat(symbols_table, ",")
-            wezterm.log_info(url)
             success, stdout, stderr = wezterm.run_child_process({"curl", url})
             if success then
                 json_data = util.json_parse_string(stdout)
@@ -359,86 +359,46 @@ function status_bar.update_status_bar(cwd)
                         network_throughput = wezterm.nerdfonts.cod_bug .. " Failed to get interface list"
                     end
                 end
-
-                if system_status_config["toggles"]["show_wifi_status"] then
-                    action, wifi_status_data = util.determine_action(config["status_bar"]["system_status"]["wifi_status"])
-                    if action == "update" then
-                        local output = {
-                            timestamp = nil,
-                            interfaces = {}
-                        }
-                        data_file = config["status_bar"]["system_status"]["wifi_status"]["data_file"]
-                        if config["os_name"] == "linux" then
-                            network_interface_list = config["status_bar"]["system_status"]["network_interface_list"]
-                            if network_interface_list ~= nil then
-                                for _, ifname in ipairs(network_interface_list) do
-                                    success, stdout, stderr = wezterm.run_child_process({"iwconfig", ifname})
-                                    if success then
-                                        signal_level = stdout:match("Signal level=--(%d+) dBm")
-                                        if signal_level ~= nil then
-                                            output["interfaces"][ifname] = signal_level
-                                        end
-                                    end
-                                end
-                            end
-                        elseif config["os_name"] == "darwin" then
-                            success, stdout, stderr = wezterm.run_child_process({"/usr/sbin/system_profiler", "SPAirPortDataType", "-json", "-detailLevel", "basic"})
-                            if success then
-                                data = util.json_parse_string(stdout)
-                                if data ~= nil then
-                                    interfaces  = data["SPAirPortDataType"][1]["spairport_airport_interfaces"]
-                                    for _, interface in ipairs(interfaces) do
-                                        ifname = interface["_name"]
-                                        if util.has_value(config["status_bar"]["system_status"]["network_interface_list"], ifname) then
-                                            spairport_signal_noise = interface["spairport_current_network_information"]["spairport_signal_noise"]
-                                            signal_level = spairport_signal_noise:match("-(%d+) dBm")
-                                            if signal_level ~= nil then
-                                                output["interfaces"][ifname] = signal_level
-                                            end
-                                        end
-                                    end
-                                end
-                            end
-                        end
-                        output["timestamp"] = util.get_timestamp()
-                        local file = io.open(data_file, "w")
-                        file:write(wezterm.json_encode(output))
-                        file:close()
-                    elseif action == "display" then
-                        for iface, signal_level in pairs(wifi_status_data["interfaces"]) do
-                            signal_level = tonumber(signal_level)
-                            local strength = ""
-                            local icon = ""
-                            if signal_level == 30 then
-                                strength = "perfect"
-                                icon = wezterm.nerdfonts.md_wifi_strength_4
-                            elseif signal_level > 30 and signal_level < 50 then
-                                strength = "excellent"
-                                icon = wezterm.nerdfonts.md_wifi_strength_4
-                            elseif signal_level >=- 50 and signal_level < 60 then
-                                strength = "good"
-                                icon = wezterm.nerdfonts.md_wifi_strength_3
-                            elseif signal_level >= 60 and signal_level < 67 then
-                                strength = "decent"
-                                icon = wezterm.nerdfonts.md_wifi_strength_2
-                            elseif signal_level >= 67 and signal_level < 70 then
-                                strength = "acceptable"
-                                icon = wezterm.nerdfonts.md_wifi_strength_1
-                            elseif signal_level >= 70 and signal_level < 80 then
-                                strength = "unstable"
-                                icon = wezterm.nerdfonts.md_wifi_strength_outline
-                            elseif signal_level > 81 then
-                                strength = "poor"
-                                icon = wezterm.nerdfonts.md_wifi_strength_alert_outline
-                            end
-                            wifi_status = icon .. " " .. iface .. " " .. strength .. " -" .. signal_level .. " " .. "dBm"
-                            table.insert(cells, util.pad_string(2, 2, wifi_status))
-                        end
-                    end
-                end
             end
         else
             table.insert(cells, util.pad_string(2, 2, wezterm.nerdfonts.cod_bug .. " wsstats not running, please see https://github.com/gdanko/wsstats."))
+        end
+
+        if system_status_config["toggles"]["show_wifi_status"] then
+            action, wifi_status_data = util.determine_action(config["status_bar"]["system_status"]["wifi_status"])
+            if action == "display" then
+                for iface, signal_level in pairs(wifi_status_data["interfaces"]) do
+                    signal_level = tonumber(signal_level)
+                    local strength = ""
+                    local icon = ""
+                    if signal_level == 30 then
+                        strength = "perfect"
+                        icon = wezterm.nerdfonts.md_wifi_strength_4
+                    elseif signal_level > 30 and signal_level < 50 then
+                        strength = "excellent"
+                        icon = wezterm.nerdfonts.md_wifi_strength_4
+                    elseif signal_level >=- 50 and signal_level < 60 then
+                        strength = "good"
+                        icon = wezterm.nerdfonts.md_wifi_strength_3
+                    elseif signal_level >= 60 and signal_level < 67 then
+                        strength = "decent"
+                        icon = wezterm.nerdfonts.md_wifi_strength_2
+                    elseif signal_level >= 67 and signal_level < 70 then
+                        strength = "acceptable"
+                        icon = wezterm.nerdfonts.md_wifi_strength_1
+                    elseif signal_level >= 70 and signal_level < 80 then
+                        strength = "unstable"
+                        icon = wezterm.nerdfonts.md_wifi_strength_outline
+                    elseif signal_level > 81 then
+                        strength = "poor"
+                        icon = wezterm.nerdfonts.md_wifi_strength_alert_outline
+                    end
+                    wifi_status = icon .. " " .. iface .. " " .. strength .. " -" .. signal_level .. " " .. "dBm"
+                    table.insert(cells, util.pad_string(2, 2, wifi_status))
+                end
+            elseif action == "update" then
+                wifi_status.update_wifi_status()
+            end
         end
     end
     return cells
