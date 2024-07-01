@@ -145,7 +145,7 @@ function status_bar.update_status_bar(cwd)
 
     -- stock quotes
     if stock_quotes_config["enabled"] then
-        local indexes = {"DJIA", "NQ=F", "^GSPC"}
+        local indexes = {"^DJI", "^IXIC", "^GSPC"}
         local index_data = {}
         action, market_data = util.determine_action(stock_quotes_config)
         if action == "display" then
@@ -185,11 +185,11 @@ function status_bar.update_status_bar(cwd)
                             updown_amount = string.format("%.2f", last - price)
                             pct_change = string.format("%.2f", ((last - price) / last) * 100)
                         end
-                        if symbol == "DJIA" then
+                        if symbol == "^DJI" then
                             if stock_quotes_config["indexes"]["show_djia"] then
                                 table.insert(index_data, "DOW " .. updown_arrow .. " " .. pct_change .. "%")
                             end
-                        elseif symbol == "NQ=F" then
+                        elseif symbol == "^IXIC" then
                             if stock_quotes_config["indexes"]["show_nasdaq"] then
                                 table.insert(index_data, "Nasdaq " .. updown_arrow .. " " .. pct_change .. "%")
                             end
@@ -209,7 +209,7 @@ function status_bar.update_status_bar(cwd)
                 timestamp = util.get_timestamp(),
                 symbols = {},
             }
-            local symbols_table = {"DJIA", "NQ=F", "^GSPC"}
+            local symbols_table = {"^DJI", "^IXIC", "^GSPC"}
             for _, symbol in ipairs(stock_quotes_config["symbols"]) do
                 table.insert(symbols_table, symbol)
             end
