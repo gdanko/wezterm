@@ -183,38 +183,38 @@ local config_keys = {
                 }
             }
         },
-        {
-            key = "l",
-            mods = user_config["keymod"],
-            action = wezterm.action.SplitPane {
-                direction = "Left",
-                size = { Percent = 50 },
-            }
-        },
-        {
-            key = "r",
-            mods = user_config["keymod"],
-            action = wezterm.action.SplitPane {
-                direction = "Right",
-                size = { Percent = 50 },
-            }
-        },
-        {
-            key = "u",
-            mods = user_config["keymod"],
-            action = wezterm.action.SplitPane {
-                direction = "Up",
-                size = { Percent = 50 },
-            }
-        },
-        {
-            key = "d",
-            mods = user_config["keymod"],
-            action = wezterm.action.SplitPane {
-                direction = "Down",
-                size = { Percent = 50 },
-            }
-        },
+        -- {
+        --     key = "l",
+        --     mods = user_config["keymod"],
+        --     action = wezterm.action.SplitPane {
+        --         direction = "Left",
+        --         size = { Percent = 50 },
+        --     }
+        -- },
+        -- {
+        --     key = "r",
+        --     mods = user_config["keymod"],
+        --     action = wezterm.action.SplitPane {
+        --         direction = "Right",
+        --         size = { Percent = 50 },
+        --     }
+        -- },
+        -- {
+        --     key = "u",
+        --     mods = user_config["keymod"],
+        --     action = wezterm.action.SplitPane {
+        --         direction = "Up",
+        --         size = { Percent = 50 },
+        --     }
+        -- },
+        -- {
+        --     key = "d",
+        --     mods = user_config["keymod"],
+        --     action = wezterm.action.SplitPane {
+        --         direction = "Down",
+        --         size = { Percent = 50 },
+        --     }
+        -- },
     },
     swap_backspace_and_delete = false,
 }
