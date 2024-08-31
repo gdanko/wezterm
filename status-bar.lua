@@ -27,6 +27,24 @@ end
 function status_bar.update_status_bar(cwd)
     local cells = {}
 
+    -- begin update data files
+    if system_status_config["enabled"] then
+        local interval = 5
+        local hours, minutes, seconds = get_hms()
+        if seconds % interval == 0 then
+            success, stdout, stderr = wezterm.run_child_process({"/Users/gdanko/bin/wsstats"})
+            if success then
+                json_data = util.json_parse_string(stdout)
+                if json_data ~= nil then
+                    file = io.open(system_status_config["data_file"], "w")
+                    file:write(wezterm.json_encode(json_data))
+                    file:close()
+                end
+            end
+        end
+    end
+    -- end update data files
+
     -- cwd and github branch information
     if config["status_bar"]["toggles"]["show_cwd"] then
         if cwd then
@@ -143,6 +161,18 @@ function status_bar.update_status_bar(cwd)
         -- end
     end
 
+    -- system updates
+    if system_updates_config["enabled"] then
+        if util.file_exists(system_updates_config["data_file"]) then
+            system_updates_data = util.json_parse(system_updates_config["data_file"])
+            if system_updates_data ~= nil then
+                update_status = wezterm.nerdfonts.md_floppy .. " updates: " .. system_updates_data["count"]
+                table.insert(cells, util.pad_string(2, 2, update_status))
+            end
+        end
+    end
+    
+
     -- stock quotes
     if stock_quotes_config["enabled"] then
         local indexes = {"^DJI", "^IXIC", "^GSPC"}
@@ -239,32 +269,17 @@ function status_bar.update_status_bar(cwd)
         end
     end
 
-    -- system updates
-    -- This MUST run as the last scheduled check as it will interfere with other checks on Macs
-    -- 'softwareupdate --list' takes ~6 seconds to run and so the other checks cannot run in a timely manner
-    -- I'll find a better way to do this
-    if system_updates_config["enabled"] then
-        action, update_data = util.determine_action(system_updates_config)
-        if action == "display" then
-            update_status = wezterm.nerdfonts.md_floppy .. " updates: " .. update_data["count"]
-            table.insert(cells, util.pad_string(2, 2, update_status))
-        elseif action == "update" then
-            system_updates.find_updates(system_updates_config["data_file"])
-        end
-    end
+
 
     -- system status
     if system_status_config["enabled"] then
-        local values = util.json_parse(system_status_config["data_file"])
-        if values ~= nil then
-            -- check for freshness
-            if (util.get_timestamp() - values["timestamp"]) > (system_status_config["freshness_threshold"] * 60) then
-                table.insert(cells, util.pad_string(2, 2, wezterm.nerdfonts.cod_bug .. " wsstats data is stale, please verify it's still running"))
-            else
+        if util.file_exists(system_status_config["data_file"]) then
+            local system_stats = util.json_parse(system_status_config["data_file"])
+            if system_stats ~= nil then
                 if system_status_config["toggles"]["show_uptime"] then
-                    if values["host"] ~= nil and values["host"]["information"] ~= nil then
+                    if system_stats["host"] ~= nil and system_stats["host"]["information"] ~= nil then
                         uptime = {"up"}
-                        seconds = values["host"]["information"]["uptime"]
+                        seconds = system_stats["host"]["information"]["uptime"]
                         if seconds == 0 then
                             seconds = 1
                         end
@@ -282,85 +297,83 @@ function status_bar.update_status_bar(cwd)
                         table.insert(cells, util.pad_string(2, 2, table.concat(uptime, " ")))
                     end
                 end
+            end
 
-                if system_status_config["toggles"]["show_cpu_usage"] then
-                    if values["cpu"] ~= nil then
-                        cpu_usage = wezterm.nerdfonts.oct_cpu .. " " .. "user " .. values["cpu"][1]["user"] .. "%, sys " .. values["cpu"][1]["system"] .. "%, idle " .. values["cpu"][1]["idle"] .. "%"
-                    else
-                        cpu_usage = wezterm.nerdfonts.cod_bug .. " Failed to get CPU usage"
-                    end
-                    table.insert(cells, util.pad_string(2, 2, cpu_usage))
+            if system_status_config["toggles"]["show_cpu_usage"] then
+                if system_stats["cpu"] ~= nil then
+                    cpu_usage = wezterm.nerdfonts.oct_cpu .. " " .. "user " .. system_stats["cpu"][1]["user"] .. "%, sys " .. system_stats["cpu"][1]["system"] .. "%, idle " .. system_stats["cpu"][1]["idle"] .. "%"
+                else
+                    cpu_usage = wezterm.nerdfonts.cod_bug .. " Failed to get CPU usage"
                 end
+                table.insert(cells, util.pad_string(2, 2, cpu_usage))
+            end
 
-                if system_status_config["toggles"]["show_load_averages"] then
-                    if values["load"] ~= nil then
-                        load1 = string.format("%.2f", values["load"]["load1"])
-                        load5 = string.format("%.2f", values["load"]["load5"])
-                        load15 = string.format("%.2f", values["load"]["load15"])
-                        load_averages = "Load: " .. load1 .. ", " .. load5 .. ", " .. load15
-                    else
-                        load_averages = wezterm.nerdfonts.cod_bug .. " Failed to get load averages"
-                    end
-                    table.insert(cells, util.pad_string(2, 2, load_averages))
+            if system_status_config["toggles"]["show_load_averages"] then
+                if system_stats["load"] ~= nil then
+                    load1 = string.format("%.2f", system_stats["load"]["load1"])
+                    load5 = string.format("%.2f", system_stats["load"]["load5"])
+                    load15 = string.format("%.2f", system_stats["load"]["load15"])
+                    load_averages = "Load: " .. load1 .. ", " .. load5 .. ", " .. load15
+                else
+                    load_averages = wezterm.nerdfonts.cod_bug .. " Failed to get load averages"
                 end
+                table.insert(cells, util.pad_string(2, 2, load_averages))
+            end
 
-                if system_status_config["toggles"]["show_memory_usage"] then
-                    if values["memory"] ~= nil then
-                        memory_usage = wezterm.nerdfonts.md_memory .. " " .. util.byte_converter(values["memory"]["used"], config["status_bar"]["system_status"]["memory_unit"]) .. " / " .. util.byte_converter(values["memory"]["total"], config["status_bar"]["system_status"]["memory_unit"])
-                    else
-                        memory_usage = wezterm.nerdfonts.cod_bug .. " Failed to get memory usage"
-                    end
-                    table.insert(cells, util.pad_string(2, 2, memory_usage))
+            if system_status_config["toggles"]["show_memory_usage"] then
+                if system_stats["memory"] ~= nil then
+                    memory_usage = wezterm.nerdfonts.md_memory .. " " .. util.byte_converter(system_stats["memory"]["used"], config["status_bar"]["system_status"]["memory_unit"]) .. " / " .. util.byte_converter(system_stats["memory"]["total"], config["status_bar"]["system_status"]["memory_unit"])
+                else
+                    memory_usage = wezterm.nerdfonts.cod_bug .. " Failed to get memory usage"
                 end
+                table.insert(cells, util.pad_string(2, 2, memory_usage))
+            end
 
-                if system_status_config["toggles"]["show_disk_usage"] then
-                    disk_list = system_status_config["disk_list"]
-                    if disk_list ~= nil then
-                        if #disk_list > 0 then
-                            if values["disk"] ~= nil then
-                                for _, block in ipairs(values["disk"]) do
-                                    for _, disk_item in ipairs(disk_list) do
-                                        if block["mount_point"] == disk_item["mount_point"] then
-                                            disk_usage = wezterm.nerdfonts.md_harddisk .. " " .. block["mount_point"] .. " " .. util.byte_converter(block["used"], disk_item["unit"]) .. " / " .. util.byte_converter(block["total"], disk_item["unit"])
-                                            table.insert(cells, util.pad_string(2, 2, disk_usage))
-                                        end
+            if system_status_config["toggles"]["show_disk_usage"] then
+                disk_list = system_status_config["disk_list"]
+                if disk_list ~= nil then
+                    if #disk_list > 0 then
+                        if system_stats["disk"] ~= nil then
+                            for _, block in ipairs(system_stats["disk"]) do
+                                for _, disk_item in ipairs(disk_list) do
+                                    if block["mount_point"] == disk_item["mount_point"] then
+                                        disk_usage = wezterm.nerdfonts.md_harddisk .. " " .. block["mount_point"] .. " " .. util.byte_converter(block["used"], disk_item["unit"]) .. " / " .. util.byte_converter(block["total"], disk_item["unit"])
+                                        table.insert(cells, util.pad_string(2, 2, disk_usage))
                                     end
                                 end
                             end
-                        else
-                            disk_usage = wezterm.nerdfonts.cod_bug .. " No disks found"
                         end
                     else
-                        disk_usage = wezterm.nerdfonts.cod_bug .. " Failed to get disk list"
+                        disk_usage = wezterm.nerdfonts.cod_bug .. " No disks found"
                     end
+                else
+                    disk_usage = wezterm.nerdfonts.cod_bug .. " Failed to get disk list"
                 end
+            end
 
-                if system_status_config["toggles"]["show_network_throughput"] then
-                    network_interface_list = system_status_config["network_interface_list"]
-                    if network_interface_list ~= nil then
-                        if #network_interface_list > 0 then
-                            if values["network"] ~= nil then
-                                for _, block in ipairs(values["network"]) do
-                                    if util.has_value(network_interface_list, block["interface"]) then
-                                        recv = util.process_bytes(block["bytes_recv"])
-                                        sent = util.process_bytes(block["bytes_sent"])
-                                        network_throughput = wezterm.nerdfonts.md_ip_network .. " " .. block["interface"] .. " " .. recv .. " RX" .. " / " .. sent .. " TX"
-                                        table.insert(cells, util.pad_string(2, 2, network_throughput))
-                                    end
+            if system_status_config["toggles"]["show_network_throughput"] then
+                network_interface_list = system_status_config["network_interface_list"]
+                if network_interface_list ~= nil then
+                    if #network_interface_list > 0 then
+                        if system_stats["network"] ~= nil then
+                            for _, block in ipairs(system_stats["network"]) do
+                                if util.has_value(network_interface_list, block["name"]) then
+                                    recv = util.process_bytes(block["bytes_recv"])
+                                    sent = util.process_bytes(block["bytes_sent"])
+                                    network_throughput = wezterm.nerdfonts.md_ip_network .. " " .. block["name"] .. " " .. recv .. " RX" .. " / " .. sent .. " TX"
+                                    table.insert(cells, util.pad_string(2, 2, network_throughput))
                                 end
-                            else
-                                network_throughput = wezterm.nerdfonts.cod_bug .. " No interfaces found"
                             end
                         else
                             network_throughput = wezterm.nerdfonts.cod_bug .. " No interfaces found"
                         end
                     else
-                        network_throughput = wezterm.nerdfonts.cod_bug .. " Failed to get interface list"
+                        network_throughput = wezterm.nerdfonts.cod_bug .. " No interfaces found"
                     end
+                else
+                    network_throughput = wezterm.nerdfonts.cod_bug .. " Failed to get interface list"
                 end
             end
-        else
-            table.insert(cells, util.pad_string(2, 2, wezterm.nerdfonts.cod_bug .. " wsstats not running, please see https://github.com/gdanko/wsstats."))
         end
     end
     return cells

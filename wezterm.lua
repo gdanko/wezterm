@@ -295,11 +295,6 @@ local config_status_bar = {
       end)
 }
 
-local config_test = {
-    enabled = config_test_enabled,
-    status_update_interval = user_config["status_bar"]["update_interval"] * 1000
-}
-
 wezterm.on("format-tab-title", function(tab, tabs, panes, config, hover, max_width)
     local pane = tab.active_pane
     local title = util.basename(pane.foreground_process_name)

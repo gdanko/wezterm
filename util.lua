@@ -180,28 +180,6 @@ function farenheit_to_celsius(temp)
     return string.format("%.2f", c)
 end
 
-function determine_action(config)
-    if file_exists(config["data_file"]) then
-        local data = util.json_parse(config["data_file"])
-        if data == nil then
-            return "update", nil
-        else
-            if (get_timestamp() - data["timestamp"]) > (config["freshness_threshold"] * 60) then
-                return "update", nil
-            else
-                local hours, minutes, seconds = get_hms()
-                if ((minutes % config["interval"]) == 0 and seconds < 4) then
-                    return "update", nil
-                else
-                    return "display", data
-                end
-            end
-        end
-    else
-        return "update", nil
-    end
-end
-
 util.basename = basename
 util.byte_converter = byte_converter
 util.determine_action = determine_action

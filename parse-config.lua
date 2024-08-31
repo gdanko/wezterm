@@ -31,12 +31,11 @@ function config_parser.get_config()
             title_is_cwd = false
         },
         status_bar = {
-            update_interval = 3,
             system_status = { -- requires github.com/gdanko/wsstats
-                data_file = "/tmp/wsstats.json",
+                data_file = util.path_join({datadir, "wsstats.json"}),
                 disk_list = {{mount_point = "/", unit = "Gi"}},
-                enabled = true,
-                freshness_threshold = 5, -- minutes
+                enabled = false,
+                freshness_threshold = 1, -- minutes
                 memory_unit = "Gi",
                 network_interface_list = {},
                 toggles = {
@@ -58,6 +57,7 @@ function config_parser.get_config()
                     show_sp500 = false,
                 },
                 interval = 15, -- decreasing too aggressively might get you rate-limited
+                interval_metric = "minutes",
                 symbols = {
                     "GOOG",
                     "AAPL"
@@ -65,9 +65,10 @@ function config_parser.get_config()
             },
             system_updates = {
                 data_file = util.path_join({datadir, "system-updates.json"}),
-                enabled = true,
+                enabled = false,
                 freshness_threshold = 60, -- minutes
                 interval = 30,
+                interval_metric = "minutes",
             },
             toggles = {
                 show_battery = false,
