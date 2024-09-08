@@ -32,11 +32,9 @@ function config_parser.get_config()
         },
         status_bar = {
             update_interval = 3,
-            system_status = { -- requires github.com/gdanko/wsstats
-                data_file = "/tmp/wsstats.json",
+            system_status = {
                 disk_list = {{mount_point = "/", unit = "Gi"}},
                 enabled = true,
-                freshness_threshold = 5, -- minutes
                 memory_unit = "Gi",
                 network_interface_list = {},
                 toggles = {
@@ -45,7 +43,7 @@ function config_parser.get_config()
                     show_load_averages = false,
                     show_memory_usage = true,
                     show_network_throughput = true,
-                    show_uptime = false,
+                    show_uptime = true,
                 },
             },
             stock_quotes = {
