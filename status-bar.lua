@@ -255,112 +255,104 @@ function status_bar.update_status_bar(cwd)
 
     -- system status
     if system_status_config["enabled"] then
-        local values = util.json_parse(system_status_config["data_file"])
-        if values ~= nil then
-            -- check for freshness
-            if (util.get_timestamp() - values["timestamp"]) > (system_status_config["freshness_threshold"] * 60) then
-                table.insert(cells, util.pad_string(2, 2, wezterm.nerdfonts.cod_bug .. " wsstats data is stale, please verify it's still running"))
-            else
-                if system_status_config["toggles"]["show_uptime"] then
-                    if values["host"] ~= nil and values["host"]["information"] ~= nil then
-                        uptime = {"up"}
-                        seconds = values["host"]["information"]["uptime"]
-                        if seconds == 0 then
-                            seconds = 1
+        if config["os_name"] == "darwin" then
+            if system_status_config["toggles"]["show_uptime"] then
+                success, stdout, stderr = wezterm.run_child_process({"sysctl", "-n", "kern.boottime"})
+                if success then
+                    timestamp = stdout:match("{ sec = %d+, usec = %d+ } (%a+%s+%a+%s+%d+%s+%d+:%d+:%d+%s+%d+)")
+                    success, stdout, stderr = wezterm.run_child_process({"/bin/date", "-j", "-f", "%a %b %d %H:%M:%S %Y", timestamp, "+%s"})
+                    if success then
+                        delta = util.get_timestamp() - stdout
+                        years, days, hours, minutes, seconds = util.duration(delta)
+                        local uptime = {"up"}
+                        if years > 0 then
+                            table.insert(uptime, string.format("%d %s", years, util.get_plural(years, "year")))
                         end
-                        days, hours, minutes, secs = util.duration(seconds)
-                        if days > 1 then
-                            d = "days"
-                        else
-                            d = "day"
-                        end
-
                         if days > 0 then
-                            table.insert(uptime, days .. " " .. d)
+                            table.insert(uptime, string.format("%d %s", days, util.get_plural(days, "day")))
                         end
-                        table.insert(uptime, string.format("%02d", hours) .. ":" .. string.format("%02d", minutes) .. ":" .. string.format("%02d", secs))
+                        table.insert(uptime, string.format("%d:%02d", hours, minutes))
                         table.insert(cells, util.pad_string(2, 2, table.concat(uptime, " ")))
                     end
                 end
+            end
 
-                if system_status_config["toggles"]["show_cpu_usage"] then
-                    if values["cpu"] ~= nil then
-                        cpu_usage = wezterm.nerdfonts.oct_cpu .. " " .. "user " .. values["cpu"][1]["user"] .. "%, sys " .. values["cpu"][1]["system"] .. "%, idle " .. values["cpu"][1]["idle"] .. "%"
-                    else
-                        cpu_usage = wezterm.nerdfonts.cod_bug .. " Failed to get CPU usage"
-                    end
+            if system_status_config["toggles"]["show_cpu_usage"] then
+                success, stdout, stderr = wezterm.run_child_process({"top", "-l", 1})
+                if success then
+                    user, sys, idle = stdout:match("CPU usage: (%d+.%d+)%%%s+user,%s+(%d+.%d+)%%%s+sys,%s+(%d+.%d+)%%%s+idle")
+                    cpu_usage = string.format("%s user %s%%, sys %s%%, idle %s%%", wezterm.nerdfonts.oct_cpu, user, sys, idle)
                     table.insert(cells, util.pad_string(2, 2, cpu_usage))
                 end
+            end
 
-                if system_status_config["toggles"]["show_load_averages"] then
-                    if values["load"] ~= nil then
-                        load1 = string.format("%.2f", values["load"]["load1"])
-                        load5 = string.format("%.2f", values["load"]["load5"])
-                        load15 = string.format("%.2f", values["load"]["load15"])
-                        load_averages = "Load: " .. load1 .. ", " .. load5 .. ", " .. load15
-                    else
-                        load_averages = wezterm.nerdfonts.cod_bug .. " Failed to get load averages"
-                    end
-                    table.insert(cells, util.pad_string(2, 2, load_averages))
+            if system_status_config["toggles"]["show_memory_usage"] then
+                local pagesize = nil
+                local total = nil
+                success, stdout, stderr = wezterm.run_child_process({"sysctl", "-n", "hw.pagesize"})
+                if success then
+                    pagesize = stdout
                 end
 
-                if system_status_config["toggles"]["show_memory_usage"] then
-                    if values["memory"] ~= nil then
-                        memory_usage = wezterm.nerdfonts.md_memory .. " " .. util.byte_converter(values["memory"]["used"], config["status_bar"]["system_status"]["memory_unit"]) .. " / " .. util.byte_converter(values["memory"]["total"], config["status_bar"]["system_status"]["memory_unit"])
-                    else
-                        memory_usage = wezterm.nerdfonts.cod_bug .. " Failed to get memory usage"
-                    end
-                    table.insert(cells, util.pad_string(2, 2, memory_usage))
+                success, stdout, stderr = wezterm.run_child_process({"sysctl", "-n", "hw.memsize"})
+                if success then
+                    total = stdout
                 end
 
-                if system_status_config["toggles"]["show_disk_usage"] then
-                    disk_list = system_status_config["disk_list"]
-                    if disk_list ~= nil then
-                        if #disk_list > 0 then
-                            if values["disk"] ~= nil then
-                                for _, block in ipairs(values["disk"]) do
-                                    for _, disk_item in ipairs(disk_list) do
-                                        if block["mount_point"] == disk_item["mount_point"] then
-                                            disk_usage = wezterm.nerdfonts.md_harddisk .. " " .. block["mount_point"] .. " " .. util.byte_converter(block["used"], disk_item["unit"]) .. " / " .. util.byte_converter(block["total"], disk_item["unit"])
-                                            table.insert(cells, util.pad_string(2, 2, disk_usage))
-                                        end
-                                    end
-                                end
-                            end
-                        else
-                            disk_usage = wezterm.nerdfonts.cod_bug .. " No disks found"
-                        end
-                    else
-                        disk_usage = wezterm.nerdfonts.cod_bug .. " Failed to get disk list"
-                    end
-                end
+                if pagesize ~= nil and total ~= nil then
+                    -- https://github.com/giampaolo/psutil/blob/master/psutil/_psosx.py#L113-L126
+                    success, stdout, stderr = wezterm.run_child_process({"vm_stat"})
+                    if success then
+                        bytes_total       = total
+                        bytes_free        = stdout:match("Pages free:%s+(%d+)") * pagesize
+                        bytes_active      = stdout:match("Pages active:%s+(%d+)") * pagesize
+                        bytes_inactive    = stdout:match("Pages inactive:%s+(%d+)") * pagesize
+                        bytes_wired       = stdout:match("Pages wired down:%s+(%d+)") * pagesize
+                        bytes_speculative = stdout:match("Pages speculative:%s+(%d+)") * pagesize
+                        bytes_used        = bytes_active + bytes_wired
+                        bytes_available   = bytes_inactive + bytes_free
 
-                if system_status_config["toggles"]["show_network_throughput"] then
-                    network_interface_list = system_status_config["network_interface_list"]
-                    if network_interface_list ~= nil then
-                        if #network_interface_list > 0 then
-                            if values["network"] ~= nil then
-                                for _, block in ipairs(values["network"]) do
-                                    if util.has_value(network_interface_list, block["interface"]) then
-                                        recv = util.process_bytes(block["bytes_recv"])
-                                        sent = util.process_bytes(block["bytes_sent"])
-                                        network_throughput = wezterm.nerdfonts.md_ip_network .. " " .. block["interface"] .. " " .. recv .. " RX" .. " / " .. sent .. " TX"
-                                        table.insert(cells, util.pad_string(2, 2, network_throughput))
-                                    end
-                                end
-                            else
-                                network_throughput = wezterm.nerdfonts.cod_bug .. " No interfaces found"
-                            end
-                        else
-                            network_throughput = wezterm.nerdfonts.cod_bug .. " No interfaces found"
-                        end
-                    else
-                        network_throughput = wezterm.nerdfonts.cod_bug .. " Failed to get interface list"
+                        memory_unit = config["status_bar"]["system_status"]["memory_unit"]
+                        memory_usage = string.format("%s %s / %s", wezterm.nerdfonts.md_memory, util.byte_converter(bytes_used, memory_unit), util.byte_converter(bytes_total, memory_unit))
+                        table.insert(cells, util.pad_string(2, 2, memory_usage))
                     end
                 end
             end
-        else
-            table.insert(cells, util.pad_string(2, 2, wezterm.nerdfonts.cod_bug .. " wsstats not running, please see https://github.com/gdanko/wsstats."))
+
+            if system_status_config["toggles"]["show_disk_usage"] then
+                disk_list = system_status_config["disk_list"]
+                if disk_list ~= nil then
+                    if #disk_list > 0 then
+                        for _, disk_item in ipairs(disk_list) do
+                            success, stdout, stderr = wezterm.run_child_process({"/bin/df", "-k", disk_item["mount_point"]})
+                            if success then
+                                df_data = util.split_words(util.split_lines(stdout)[2])
+                                disk_total = df_data[2] * 1024
+                                disk_available = df_data[4] * 1024
+                                disk_used = disk_total - disk_available
+                                mount_point = df_data[9]
+                                disk_usage = string.format("%s %s %s / %s", wezterm.nerdfonts.md_harddisk, mount_point, util.byte_converter(disk_used, disk_item["unit"]), util.byte_converter(disk_total, disk_item["unit"]))
+                                table.insert(cells, util.pad_string(2, 2, disk_usage))
+                            end
+                        end
+                    end
+                end
+            end
+
+            if system_status_config["toggles"]["show_network_throughput"] then
+                network_interface_list = system_status_config["network_interface_list"]
+                if network_interface_list ~= nil then
+                    if #network_interface_list > 0 then
+                        for _, interface in ipairs(network_interface_list) do
+                            local r1, s1 = util.do_netstat(interface)
+                            _, _, _ = wezterm.run_child_process({"sleep", "1"})
+                            local r2, s2 = util.do_netstat(interface)
+                            network_throughput = string.format("%s %s RX / %s TX", interface, util.process_bytes(r2 - r1), util.process_bytes(s2 - s1))
+                            table.insert(cells, util.pad_string(2, 2, network_throughput))
+                        end
+                    end
+                end
+            end
         end
     end
     return cells
