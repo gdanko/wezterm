@@ -26,6 +26,30 @@ function string_split(inputstr, sep)
     return t
 end
 
+function split_lines(input)
+    local lines = {}
+	for line in string.gmatch(input, "[^\r\n]+") do
+        table.insert(lines, line)
+    end
+    return lines
+end
+
+function split_words(input)
+    local parts = {}
+    for part in input:gmatch("%S+") do
+        table.insert(parts, part)
+    end
+    return parts
+end
+
+function get_plural(count, string)
+    if count == 1 then
+        return string
+    else
+        return string.format("%ss", string)
+    end
+end
+
 function get_cwd(pane)
     local cwd_uri = pane:get_current_working_dir()
     if cwd_uri then
@@ -55,6 +79,12 @@ function has_value(array, value)
         end
     end
     return false
+end
+
+function divide(a, b)
+    local quotient = math.floor(a / b)
+    local remainder = a % b
+    return quotient, remainder
 end
 
 function process_bytes(num)
@@ -153,20 +183,25 @@ function byte_converter(bytes, unit)
     elseif prefix == "E" then
         multiple = 6
     else
-        return string.format("%.2f%s", bytes, suffix)
+        return string.format("%.2f %s", bytes, suffix)
     end
 
-    return string.format("%.2f%s%s", bytes / math.pow(divisor, multiple), unit, suffix)
+    return string.format("%.2f %s%s", bytes / math.pow(divisor, multiple), unit, suffix)
 end
 
 function duration(seconds)
+    local years = 0
+    local days = 0
     seconds = math.floor(seconds)
     days = math.floor(seconds / 86400)
+    if days > 365 then
+        years, days = divide(days, 366)
+    end
     hours = math.floor(((seconds - (days * 86400)) / 3600))
     minutes = math.floor(((seconds - days * 86400 - hours * 3600) / 60))
     secs = math.floor((seconds - (days * 86400) - (hours * 3600) - (minutes * 60)))
 
-    return days, hours, minutes, secs
+    return years, days, hours, minutes, secs
 end
 
 function get_hms()
@@ -202,10 +237,25 @@ function determine_action(config)
     end
 end
 
+function do_netstat(interface)
+    local bytes_recv = nil
+    local bytes_recv = nil
+    success, stdout, stderr = wezterm.run_child_process({"netstat", "-bi", "-I", interface})
+    if success then
+        bits = split_words(split_lines(stdout)[2])
+        bytes_recv = bits[7]
+        bytes_sent = bits[10]
+        return bytes_recv, bytes_sent
+    end
+    return nil, nil
+end
+
 util.basename = basename
 util.byte_converter = byte_converter
 util.determine_action = determine_action
 util.dirname = dirname
+util.divide = divide
+util.do_netstat = do_netstat
 util.duration = duration
 util.execute_command = execute_command
 util.exists = exists
@@ -213,6 +263,7 @@ util.farenheit_to_celsius = farenheit_to_celsius
 util.file_exists = file_exists
 util.get_cwd = get_cwd
 util.get_hms = get_hms
+util.get_plural = get_plural
 util.get_timestamp = get_timestamp
 util.has_value = has_value
 util.is_dir = is_dir
@@ -221,7 +272,9 @@ util.json_parse_string = json_parse_string
 util.pad_string = pad_string
 util.path_join = path_join
 util.process_bytes = process_bytes
+util.split_lines = split_lines
 util.split_to_lines = split_to_lines
+util.split_words = split_words
 util.string_split = string_split
 
 return util
