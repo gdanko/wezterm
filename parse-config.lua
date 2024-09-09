@@ -63,7 +63,7 @@ function config_parser.get_config()
             },
             system_updates = {
                 data_file = util.path_join({datadir, "system-updates.json"}),
-                enabled = true,
+                enabled = false,
                 freshness_threshold = 60, -- minutes
                 interval = 30,
             },
