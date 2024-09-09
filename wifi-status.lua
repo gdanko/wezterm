@@ -1,5 +1,5 @@
 local config_parser = require "parse-config"
-local util = require "util"
+local util = require "util.util"
 local wezterm = require "wezterm"
 
 local config = config_parser.get_config()

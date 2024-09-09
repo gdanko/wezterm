@@ -4,7 +4,7 @@
 -- https://api.openweathermap.org/geo/1.0/zip?zip=92103&appid=xxxxx
 -- https://api.openweathermap.org/geo/1.0/reverse?lat=32.74&long=-117.24&appid=xxxxx
 
-local util = require "util"
+local util = require "util.util"
 local wezterm = require "wezterm"
 
 local weather = {}
