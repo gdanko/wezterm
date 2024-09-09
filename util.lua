@@ -1,5 +1,4 @@
 local wezterm = require "wezterm"
-
 local util = {}
 
 function execute_command(cwd, command)
@@ -15,7 +14,9 @@ end
 -- Better popen using posix
 -- https://stackoverflow.com/questions/1242572/how-do-you-construct-a-read-write-pipe-with-lua/16515126#16515126
 
--- Begin string splitting/handling functions
+--[=====[
+    Begin string splitting/handling functions
+--]=====]
 function string_split(inputstr, sep)
     if sep == nil then
         sep = "%s"
@@ -59,9 +60,13 @@ function pad_string(pad_left, pad_right, input_string)
         return input_string
     end
 end
--- End string splitting/handling functions
+--[=====[
+    End string splitting/handling functions
+--]=====]
 
--- Begin filesystem functions
+--[=====[
+    Begin filesystem functions
+--]=====]
 function get_cwd(pane)
     local cwd_uri = pane:get_current_working_dir()
     if cwd_uri then
@@ -113,9 +118,13 @@ function is_dir(path)
         return false
     end
 end
--- End filesystem functions
+--[=====[
+    End filesystem functions
+--]=====]
 
--- Begin parsing functions
+--[=====[
+    Begin parsing functions
+--]=====]
 function json_parse(filename)
     if file_exists(filename) then
         local filehandle = io.open(filename, "r")
@@ -132,15 +141,21 @@ function json_parse_string(input)
     local json_data = wezterm.json_parse(input)
     return json_data
 end
--- End parsing functions
+--[=====[
+    End parsing functions
+--]=====]
 
--- Begin math functions
+--[=====[
+    Begin math functions
+--]=====]
 function divide(a, b)
     local quotient = math.floor(a / b)
     local remainder = a % b
     return quotient, remainder
 end
--- End math functions
+--[=====[
+    End math functions
+--]=====]
 
 function has_value(array, value)
     for _, element in ipairs(array) do
