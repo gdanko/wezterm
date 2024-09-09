@@ -344,9 +344,9 @@ function status_bar.update_status_bar(cwd)
                 if network_interface_list ~= nil then
                     if #network_interface_list > 0 then
                         for _, interface in ipairs(network_interface_list) do
-                            local r1, s1 = util.do_netstat(interface)
+                            local r1, s1 = util.network_data_darwin(interface)
                             _, _, _ = wezterm.run_child_process({"sleep", "1"})
-                            local r2, s2 = util.do_netstat(interface)
+                            local r2, s2 = util.network_data_darwin(interface)
                             network_throughput = string.format("%s %s RX / %s TX", interface, util.process_bytes(r2 - r1), util.process_bytes(s2 - s1))
                             table.insert(cells, util.pad_string(2, 2, network_throughput))
                         end
@@ -404,6 +404,25 @@ function status_bar.update_status_bar(cwd)
                                 mount_point = df_data[6]
                                 disk_usage = string.format("%s %s %s / %s", wezterm.nerdfonts.md_harddisk, mount_point, util.byte_converter(disk_used, disk_item["unit"]), util.byte_converter(disk_total, disk_item["unit"]))
                                 table.insert(cells, util.pad_string(2, 2, disk_usage))
+                            end
+                        end
+                    end
+                end
+            end
+
+            if system_status_config["toggles"]["show_network_throughput"] then
+                network_interface_list = system_status_config["network_interface_list"]
+                if network_interface_list ~= nil then
+                    if #network_interface_list > 0 then
+                        for _, interface in ipairs(network_interface_list) do
+                            local r1, s1 = util.network_data_linux(interface)
+                            if r1 ~= nil and s1 ~= nil then
+                                _, _, _ = wezterm.run_child_process({"sleep", "1"})
+                                local r2, s2 = util.network_data_linux(interface)
+                                if r2 ~= nil and s2 ~= nil then
+                                    network_throughput = string.format("%s %s RX / %s TX", interface, util.process_bytes(r2 - r1), util.process_bytes(s2 - s1))
+                                    table.insert(cells, util.pad_string(2, 2, network_throughput))
+                                end
                             end
                         end
                     end
