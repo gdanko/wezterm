@@ -353,6 +353,62 @@ function status_bar.update_status_bar(cwd)
                     end
                 end
             end
+        elseif config["os_name"] == "linux" then
+            if system_status_config["toggles"]["show_uptime"] then
+                success, stdout, stderr = wezterm.run_child_process({"cut", "-f1", "-d.", "/proc/uptime"})
+                if success then
+                    years, days, hours, minutes, seconds = util.duration(stdout)
+                    local uptime = {"up"}
+                    if years > 0 then
+                        table.insert(uptime, string.format("%d %s", years, util.get_plural(years, "year")))
+                    end
+                    if days > 0 then
+                        table.insert(uptime, string.format("%d %s", days, util.get_plural(days, "day")))
+                    end
+                    table.insert(uptime, string.format("%d:%02d", hours, minutes))
+                    table.insert(cells, util.pad_string(2, 2, table.concat(uptime, " ")))
+                    
+                end
+            end
+
+            if system_status_config["toggles"]["show_cpu_usage"] then
+                success, stdout, stderr = wezterm.run_child_process({"mpstat"})
+                if success then
+                    user, nice, sys, iowait, irq, soft, steal, guest, gnice, idle = stdout:match("all%s+(%d+.%d+)%s+(%d+.%d+)%s+(%d+.%d+)%s+(%d+.%d+)%s+(%d+.%d+)%s+(%d+.%d+)%s+(%d+.%d+)%s+(%d+.%d+)%s+(%d+.%d+)%s+(%d+.%d+)")
+                    cpu_usage = string.format("%s user %s%%, sys %s%%, idle %s%%", wezterm.nerdfonts.oct_cpu, user, sys, idle)
+                    table.insert(cells, util.pad_string(2, 2, cpu_usage))
+                end
+            end
+
+            if system_status_config["toggles"]["show_memory_usage"] then
+                success, stdout, stderr = wezterm.run_child_process({"free", "-b", "-w"})
+                if success then
+                    bytes_total, bytes_used, bytes_free, bytes_shared, bytes_buffers, bytes_cache, bytes_available = stdout:match("Mem:%s+(%d+)%s+(%d+)%s+(%d+)%s+(%d+)%s+(%d+)%s+(%d+)%s+(%d+)")
+                    memory_unit = config["status_bar"]["system_status"]["memory_unit"]
+                    memory_usage = string.format("%s %s / %s", wezterm.nerdfonts.md_memory, util.byte_converter(bytes_used, memory_unit), util.byte_converter(bytes_total, memory_unit))
+                    table.insert(cells, util.pad_string(2, 2, memory_usage))
+                end
+            end
+
+            if system_status_config["toggles"]["show_disk_usage"] then
+                disk_list = system_status_config["disk_list"]
+                if disk_list ~= nil then
+                    if #disk_list > 0 then
+                        for _, disk_item in ipairs(disk_list) do
+                            success, stdout, stderr = wezterm.run_child_process({"/bin/df", "-k", disk_item["mount_point"]})
+                            if success then
+                                df_data = util.split_words(util.split_lines(stdout)[2])
+                                disk_total = df_data[2] * 1024
+                                disk_available = df_data[4] * 1024
+                                disk_used = df_data[3] * 1024
+                                mount_point = df_data[6]
+                                disk_usage = string.format("%s %s %s / %s", wezterm.nerdfonts.md_harddisk, mount_point, util.byte_converter(disk_used, disk_item["unit"]), util.byte_converter(disk_total, disk_item["unit"]))
+                                table.insert(cells, util.pad_string(2, 2, disk_usage))
+                            end
+                        end
+                    end
+                end
+            end
         end
     end
     return cells
