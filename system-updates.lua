@@ -1,5 +1,4 @@
-local wezterm = require "wezterm"
-local util = require "util"
+local util = require "util.util"
 
 system_updates = {}
 

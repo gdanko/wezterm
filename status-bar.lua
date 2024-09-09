@@ -2,11 +2,9 @@ local battery_status = require "battery-status"
 local config_parser = require "parse-config"
 local system_updates = require "system-updates"
 local github = require "github"
-local util = require "util"
+local util = require "util.util"
 local weather = require "weather"
 local wezterm = require "wezterm"
-
-local wsstats_json_file = "/tmp/wsstats.json"
 
 local arrow_down = wezterm.nerdfonts.cod_arrow_small_down
 local arrow_up = wezterm.nerdfonts.cod_arrow_small_up
@@ -111,9 +109,9 @@ function status_bar.update_status_bar(cwd)
         --     high = weather_data["main"]["temp_max"]
         --     low = weather_data["main"]["temp_min"]
         --     if unit == "C" then
-        --         current = util.farenheit_to_celsius(current)
-        --         high = util.farenheit_to_celsius(high)
-        --         low = util.farenheit_to_celsius(low)
+        --         current = util.fahrenheit_to_celsius(current)
+        --         high = util.fahrenheit_to_celsius(high)
+        --         low = util.fahrenheit_to_celsius(low)
         --     end
         --     icon = weather.get_icon(icon_id, condition_id)
 
