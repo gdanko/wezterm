@@ -15,6 +15,7 @@ end
 -- Better popen using posix
 -- https://stackoverflow.com/questions/1242572/how-do-you-construct-a-read-write-pipe-with-lua/16515126#16515126
 
+-- Begin string splitting/handling functions
 function string_split(inputstr, sep)
     if sep == nil then
         sep = "%s"
@@ -50,6 +51,17 @@ function get_plural(count, string)
     end
 end
 
+function pad_string(pad_left, pad_right, input_string)
+    -- return (" "):rep(pad_left) .. input_string .. (" "):rep(pad_right)
+    if input_string ~= nil then
+        return (" "):rep(pad_left) .. input_string .. (" "):rep(pad_right)
+    else
+        return input_string
+    end
+end
+-- End string splitting/handling functions
+
+-- Begin filesystem functions
 function get_cwd(pane)
     local cwd_uri = pane:get_current_working_dir()
     if cwd_uri then
@@ -70,41 +82,6 @@ end
 
 function path_join(path_bits)
     return table.concat(path_bits, "/")
-end
-
-function has_value(array, value)
-    for _, element in ipairs(array) do
-        if element == value then
-            return true
-        end
-    end
-    return false
-end
-
-function divide(a, b)
-    local quotient = math.floor(a / b)
-    local remainder = a % b
-    return quotient, remainder
-end
-
-function process_bytes(num)
-    suffix = "B"
-    for _, unit in ipairs({"", "Ki", "Mi", "Gi", "Ti", "Pi", "Ei", "Zi"}) do
-        if math.abs(num) < 1024.0 then
-            return string.format("%.2f %s%s/s", num, unit, suffix)
-        end
-        num = num / 1024
-    end
-    return string.format("%.1f %s%s", num, "Yi", suffix)
-end
-
-function pad_string(pad_left, pad_right, input_string)
-    -- return (" "):rep(pad_left) .. input_string .. (" "):rep(pad_right)
-    if input_string ~= nil then
-        return (" "):rep(pad_left) .. input_string .. (" "):rep(pad_right)
-    else
-        return input_string
-    end
 end
 
 function file_exists(filename)
@@ -136,7 +113,9 @@ function is_dir(path)
         return false
     end
 end
+-- End filesystem functions
 
+-- Begin parsing functions
 function json_parse(filename)
     if file_exists(filename) then
         local filehandle = io.open(filename, "r")
@@ -153,9 +132,35 @@ function json_parse_string(input)
     local json_data = wezterm.json_parse(input)
     return json_data
 end
+-- End parsing functions
 
-function get_timestamp()
-    return os.time()
+-- Begin math functions
+function divide(a, b)
+    local quotient = math.floor(a / b)
+    local remainder = a % b
+    return quotient, remainder
+end
+-- End math functions
+
+function has_value(array, value)
+    for _, element in ipairs(array) do
+        if element == value then
+            return true
+        end
+    end
+    return false
+end
+
+-- Begin bytes conversion functions
+function process_bytes(num)
+    suffix = "B"
+    for _, unit in ipairs({"", "Ki", "Mi", "Gi", "Ti", "Pi", "Ei", "Zi"}) do
+        if math.abs(num) < 1024.0 then
+            return string.format("%.2f %s%s/s", num, unit, suffix)
+        end
+        num = num / 1024
+    end
+    return string.format("%.1f %s%s", num, "Yi", suffix)
 end
 
 -- Simple byte converter
@@ -204,17 +209,54 @@ function duration(seconds)
     return years, days, hours, minutes, secs
 end
 
-function get_hms()
-    time = os.date("*t")
-
-    return time.hour, time.min, time.sec
-end
-
 function farenheit_to_celsius(temp)
     c = (((temp - 32) * 5) / 9)
     return string.format("%.2f", c)
 end
+-- End conversion functions
 
+-- Begin time functions
+function get_timestamp()
+    return os.time()
+end
+
+function get_hms()
+    time = os.date("*t")
+    return time.hour, time.min, time.sec
+end
+-- End time functions
+
+-- Begin network functions
+function network_data_darwin(interface)
+    local bytes_recv = nil
+    local bytes_recv = nil
+    success, stdout, stderr = wezterm.run_child_process({"netstat", "-bi", "-I", interface})
+    if success then
+        bits = split_words(split_lines(stdout)[2])
+        bytes_recv = bits[7]
+        bytes_sent = bits[10]
+        return bytes_recv, bytes_sent
+    end
+    return nil, nil
+end
+
+function network_data_linux(interface)
+    local bytes_recv = nil
+    local bytes_recv = nil
+    success, stdout, stderr = wezterm.run_child_process({"cat", "/proc/net/dev"})
+    if success then
+        for _, line in ipairs(split_lines(stdout)) do
+            if line:match(string.format("%s:", interface)) then
+                bits = split_words(line)
+                return bits[2], bits[10]
+            end
+        end
+    end
+    return nil, nil
+end
+-- End network functions
+
+-- This will be deprecated
 function determine_action(config)
     if file_exists(config["data_file"]) then
         local data = util.json_parse(config["data_file"])
@@ -237,25 +279,11 @@ function determine_action(config)
     end
 end
 
-function do_netstat(interface)
-    local bytes_recv = nil
-    local bytes_recv = nil
-    success, stdout, stderr = wezterm.run_child_process({"netstat", "-bi", "-I", interface})
-    if success then
-        bits = split_words(split_lines(stdout)[2])
-        bytes_recv = bits[7]
-        bytes_sent = bits[10]
-        return bytes_recv, bytes_sent
-    end
-    return nil, nil
-end
-
 util.basename = basename
 util.byte_converter = byte_converter
 util.determine_action = determine_action
 util.dirname = dirname
 util.divide = divide
-util.do_netstat = do_netstat
 util.duration = duration
 util.execute_command = execute_command
 util.exists = exists
@@ -269,6 +297,8 @@ util.has_value = has_value
 util.is_dir = is_dir
 util.json_parse = json_parse
 util.json_parse_string = json_parse_string
+util.network_data_darwin = network_data_darwin
+util.network_data_linux = network_data_linux
 util.pad_string = pad_string
 util.path_join = path_join
 util.process_bytes = process_bytes
