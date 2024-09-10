@@ -14,7 +14,7 @@ function update_json(config)
     if exists then
         json_data = util.json_parse(config["status_bar"]["wifi_status"]["data_file"])
         if json_data ~= nil then
-            if (util.get_timestamp() - json_data["timestamp"]) > 30 then
+            if (util.get_timestamp() - json_data["timestamp"]) > 10 then
                 needs_update = true
             end
         end
