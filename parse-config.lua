@@ -77,12 +77,12 @@ function config_parser.get_config()
                 show_hostname = false,
             },
             weather = {
-                -- api_key = nil, -- https://openweathermap.org/
-                -- data_file = util.path_join({datadir, "weather.json"}),
+                api_key = nil, -- https://weatherapi.com/
+                conditions_file = util.path_join({datadir, "weather_conditions.json"}),
+                data_file = util.path_join({datadir, "weather.json"}),
                 enabled = false,
-                -- freshness_threshold = 30, -- minutes
-                -- interval = 15, -- decreasing too aggressively might get you rate-limited
-                location = "San Diego, CA",
+                interval = 15, -- decreasing too aggressively might get you rate-limited
+                location = "San Diego, CA, US",
                 use_celsius = true,
             }
         }
