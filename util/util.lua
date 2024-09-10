@@ -20,29 +20,6 @@ function has_value(array, value)
     return false
 end
 
-function determine_action(config)
-    if file_exists(config["data_file"]) then
-        local data = util.json_parse(config["data_file"])
-        if data == nil then
-            return "update", nil
-        else
-            if (get_timestamp() - data["timestamp"]) > (config["freshness_threshold"] * 60) then
-                return "update", nil
-            else
-                local hours, minutes, seconds = get_hms()
-                if ((minutes % config["interval"]) == 0 and seconds < 4) then
-                    return "update", nil
-                else
-                    return "display", data
-                end
-            end
-        end
-    else
-        return "update", nil
-    end
-end
-
-util.determine_action = determine_action
 util.execute_command = execute_command
 util.has_value = has_value
 
