@@ -1,20 +1,19 @@
+local wezterm = require "wezterm"
 local battery_status = require "battery-status"
 local config_parser = require "parse-config"
-local stock_quotes = require "stock-quotes"
 local github = require "github"
+local stock_quotes = require "stock-quotes"
+local system_status = require "system-status.system-status"
 local util = require "util.util"
 local weather = require "weather"
-local wezterm = require "wezterm"
-
+local wifi_status = require "wifi-status"
 
 local config = config_parser.get_config()
 
 local stock_quotes_config = config["status_bar"]["stock_quotes"]
 local system_status_config = config["status_bar"]["system_status"]
 local weather_config = config["status_bar"]["weather"]
-
-local system_status = require "system-status.system-status"
-
+local wifi_status_config = config["status_bar"]["wifi_status"]
 
 status_bar = {}
 
@@ -22,6 +21,7 @@ function status_bar.update_status_bar(cwd)
     -- update the data files as needed
     stock_quotes.update_json(stock_quotes_config)
     weather.update_json(weather_config)
+    wifi_status.update_json(config)
 
     local cells = {}
     -- cwd and github branch information
@@ -101,6 +101,16 @@ function status_bar.update_status_bar(cwd)
         if stock_index_data ~= nil then
             for _, stock_index in ipairs(stock_index_data) do
                 table.insert(cells, stock_index)
+            end
+        end
+    end
+
+    -- wifi status
+    if wifi_status_config["enabled"] then
+        wifi_data = wifi_status.get_wifi_status(config)
+        if wifi_data ~= nil then
+            for _, interface_data in ipairs(wifi_data) do
+                table.insert(cells, interface_data)
             end
         end
     end

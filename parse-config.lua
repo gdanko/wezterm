@@ -84,6 +84,11 @@ function config_parser.get_config()
                 interval = 15, -- decreasing too aggressively might get you rate-limited
                 location = "San Diego, CA, US",
                 use_celsius = true,
+            },
+            wifi_status = {
+                data_file = util.path_join({datadir, "wifi-status.json"}),
+                enabled = true,
+                interval = 1,
             }
         }
     }
