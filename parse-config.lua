@@ -8,7 +8,7 @@ if not util.is_dir(datadir) then
     os.execute("mkdir -p " .. datadir)
 end
 
-function config_parser.get_config()
+function get_config()
     local config = {
         display = {
             font_size = 14,
@@ -131,5 +131,7 @@ function config_parser.get_config()
 
     return config
 end
+
+config_parser.get_config = get_config
 
 return config_parser
