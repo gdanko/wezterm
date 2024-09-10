@@ -3,10 +3,9 @@
 
 ## Requirements
 * wezterm on either Darwin or Linux. I don't have a Windows computer to test on.
-* If you want system status in the title bar, please download and build [wsstats](https://github.com/gdanko/wsstats).
 
 ## Installation
-Clone the repository at the root of ~/.config. Pro tip, I use Dropbox so I can use the same config across multiple computers.
+Clone the repository at the root of ~/.config. I use Dropbox so I can use the same config across multiple computers.
 
 ## Features
 * Generic default config that is pulled when wezterm is started.
@@ -28,7 +27,6 @@ Clone the repository at the root of ~/.config. Pro tip, I use Dropbox so I can u
   * Disk Usage
   * Network Throughput
   * WiFi Signal Strength
-* System update count (currently MacOS, Alpine, Arch, CentOS, Debian, Fedora, Ubuntu)
 * Weather
 
 ## To-Do
