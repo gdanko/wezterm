@@ -5,6 +5,7 @@ local folderOfThisFile = (...):match("(.-)[^%.]+$")
 
 local cpu_usage = require(folderOfThisFile .. "cpu-usage")
 local disk_usage = require(folderOfThisFile .. "disk-usage")
+local load_averages = require(folderOfThisFile .. "load-averages")
 local memory_usage = require(folderOfThisFile .. "memory-usage")
 local network_throughput = require(folderOfThisFile .. "network-throughput")
 local uptime = require(folderOfThisFile .. "uptime")
@@ -33,6 +34,14 @@ function get_memory_usage(config)
     end
 end
 
+function get_load_averages(config)
+    if config["os_name"] == "darwin" then
+        return load_averages.darwin_load_averages(config)
+    elseif config["os_name"] == "linux" then
+        return load_averages.linux_load_averages(config)
+    end
+end
+
 function get_network_throughput(config)
     if config["os_name"] == "darwin" then
         return network_throughput.darwin_network_throughput(config)
@@ -51,6 +60,7 @@ end
 
 system_status.get_cpu_usage = get_cpu_usage
 system_status.get_disk_usage = get_disk_usage
+system_status.get_load_averages = get_load_averages
 system_status.get_memory_usage = get_memory_usage
 system_status.get_network_throughput = get_network_throughput
 system_status.get_system_uptime = get_system_uptime

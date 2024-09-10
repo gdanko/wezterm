@@ -109,6 +109,12 @@ function status_bar.update_status_bar(cwd)
 
     -- system status
     if system_status_config["enabled"] then
+        if system_status_config["toggles"]["show_load_averages"] then
+            load_averages = system_status.get_load_averages(config)
+            if load_averages ~= nil then
+                table.insert(cells, load_averages)
+            end
+        end
         if system_status_config["toggles"]["show_uptime"] then
             system_uptime = system_status.get_system_uptime(config)
             if system_uptime ~= nil then
