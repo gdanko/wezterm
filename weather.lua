@@ -51,7 +51,6 @@ function update_json(config)
             if conditions_array ~= nil then
                 conditions["data"] = conditions_array
                 conditions["timestamp"] = util.get_timestamp()
-                wezterm.log_info(conditions)
                 file = io.open(config["conditions_file"], "w")
                 file:write(wezterm.json_encode(conditions))
                 file:close()

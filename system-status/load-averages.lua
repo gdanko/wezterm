@@ -6,10 +6,8 @@ local load_averages = {}
 function darwin_load_averages(config)
     success, stdout, stderr = wezterm.run_child_process({"/usr/bin/uptime"})
     if success then
-        wezterm.log_info(stdout)
         load1, load5, load15 = stdout:match("load averages:%s+(%d+.%d+)%s+(%d+.%d+)%s+(%d+.%d+)")
         load_averages = string.format("load: %s, %s, %s", load1, load5, load15)
-        wezterm.log_info(load_averages)
         return util.pad_string(2, 2, load_averages)
     end
     return nil
@@ -18,10 +16,8 @@ end
 function linux_load_averages(config)
     success, stdout, stderr = wezterm.run_child_process({"/usr/bin/uptime"})
     if success then
-        wezterm.log_info(stdout)
         load1, load5, load15 = stdout:match("load average:%s+(%d+.%d+),%s+(%d+.%d+),%s+(%d+.%d+)")
         load_averages = string.format("load: %s, %s, %s", load1, load5, load15)
-        wezterm.log_info(load_averages)
         return util.pad_string(2, 2, load_averages)
     end
     return nil
