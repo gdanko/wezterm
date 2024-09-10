@@ -54,6 +54,8 @@ function config_parser.get_config()
                     show_djia = false,
                     show_nasdaq = false,
                     show_sp500 = false,
+                    show_gold = false,
+                    show_crude = false,
                 },
                 interval = 15, -- decreasing too aggressively might get you rate-limited
                 symbols = {
