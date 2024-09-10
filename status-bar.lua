@@ -1,7 +1,6 @@
 local wezterm = require "wezterm"
 local battery_status = require "battery-status"
 local config_parser = require "parse-config"
-local github = require "github"
 local stock_quotes = require "stock-quotes"
 local system_status = require "system-status.system-status"
 local util = require "util.util"
