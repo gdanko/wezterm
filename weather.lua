@@ -1,61 +1,82 @@
--- https://openweathermap.org/api/geocoding-api
--- https://api.openweathermap.org/geo/1.0/direct?q=San%20Diego,CA,US&limit=4&appid=xxxxxx
--- https://api.openweathermap.org/geo/1.0/direct?q=San+Diego,US&limit=5&appid=xxxxx
--- https://api.openweathermap.org/geo/1.0/zip?zip=92103&appid=xxxxx
--- https://api.openweathermap.org/geo/1.0/reverse?lat=32.74&long=-117.24&appid=xxxxx
-
-local util = require "util.util"
 local wezterm = require "wezterm"
+local util = require "util.util"
 
 local weather = {}
 
-function weather.write_data_file(data_file, location, appid)
-    url = string.format("https://api.openweathermap.org/geo/1.0/direct?q=%s&limit=1&appid=%s", location, appid)
-    success, stdout, stderr = wezterm.run_child_process({"curl", url})
-    if success then
-        json_data = util.json_parse_string(stdout)
-        if json_data ~= nil then
-            location_data = json_data[1]
-            if location_data["lon"] ~= nil and location_data["lat"] ~= nil then
-                url = string.format("https://api.openweathermap.org/data/2.5/weather?lon=%s&lat=%s&units=imperial&appid=%s", location_data["lon"], location_data["lat"], appid)
-                success, stdout, stderr = wezterm.run_child_process({"curl", url})
-                if success then
-                    weather_data = util.json_parse_string(stdout)
-                    if weather_data ~= nil then
-                        weather_data["timestamp"] = util.get_timestamp()
-                        cod = weather_data["cod"]
-                        -- cod is status code
-                        -- error out on this
-                        file = io.open(data_file, "w")
-                        file:write(wezterm.json_encode(weather_data))
-                        file:close()
-                    end
-                end
+function update_json(config)
+    needs_update = false
+    exists, err = util.file_exists(config["data_file"])
+    if exists then
+        weather_data = util.json_parse(config["data_file"])
+        if weather_data ~= nil then
+            if (util.get_timestamp() - weather_data["timestamp"]) > (config["interval"] * 3600) then
+                needs_update = true
             end
         end
+    else
+        needs_update = true
+    end
+
+    if needs_update then
+        url = string.format("http://api.weatherapi.com/v1/forecast.json?key=%s&q=%s&days=%s&aqi=yes&alerts=yes", config["api_key"], config["location"]:gsub(" ", "%%20"), "2")
+        success, stdout, stderr = wezterm.run_child_process({"curl", url})
+        if success then
+            weather_data = util.json_parse_string(stdout)
+            if weather_data ~= nil then
+                weather_data["timestamp"] = util.get_timestamp()
+                file = io.open(config["data_file"], "w")
+                file:write(wezterm.json_encode(weather_data))
+                file:close()
+            end
+        end
+
+        needs_update = false
+        conditions = {}
+        exists, err = util.file_exists(config["conditions_file"])
+        if exists then
+            condition_data = util.json_parse(config["conditions_file"])
+            if condition_data ~= nil then
+                if (util.get_timestamp() - condition_data["timestamp"]) > (config["interval"] * 3600) then
+                    needs_update = true
+                end
+            end
+        else
+            needs_update = true
+        end
+
+        url = "https://www.weatherapi.com/docs/weather_conditions.json"
+        success, stdout, stderr = wezterm.run_child_process({"curl", url})
+        if success then
+            conditions_array = util.json_parse_string(stdout)
+            if conditions_array ~= nil then
+                conditions["data"] = conditions_array
+                conditions["timestamp"] = util.get_timestamp()
+                wezterm.log_info(conditions)
+                file = io.open(config["conditions_file"], "w")
+                file:write(wezterm.json_encode(conditions))
+                file:close()
+            end
+        end
+    end
+end
+
+function get_weather(config)
+    weather_data = util.json_parse(config["data_file"])
+    if weather_data ~= nil then
+        if config["use_celsius"] then
+            current_temp = weather_data["current"]["temp_c"]
+            unit = "C"
+        else
+            current_temp = weather_data["current"]["temp_f"]
+            unit = "F"
+        end
+        weather = string.format("%s %s°%s", config["location"], current_temp, unit)
+        return util.pad_string(2, 2, weather)
     end
     return nil
 end
 
-function weather.get_icon(icon_id, condition_id)
-    -- https://openweathermap.org/weather-conditions
-    if icon_id == "01d" then
-        return "☀️"
-    elseif icon_id == "01n" then
-        return "🌙"
-    elseif icon_id == "02d" or icon_id == "02n" or icon_id == "03d" or icon_id == "03n" or icon_id == "04d" or icon_id == "04n" then
-        return "☁️"
-    elseif icon_id == "09d" or icon_id == "09n" then
-        return "🌧"
-    elseif icon_id == "10d" or icon_id == "10n" then
-        return "☔️"
-    elseif icon_id == "11d" or icon_id == "11n" then
-        return "⚡️"
-    elseif icon_id == "13d" or icon_id == "13n" then
-        return "❄️"
-    elseif icon_id == "50d" or icon_id == "50n" then
-        return "🌫️"
-    end
-end
+weather.get_weather = get_weather
+weather.update_json = update_json
 
 return weather
