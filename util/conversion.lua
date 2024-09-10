@@ -68,5 +68,4 @@ conversion.duration = duration
 conversion.fahrenheit_to_celsius = fahrenheit_to_celsius
 conversion.process_bytes = process_bytes
 
-wezterm.log_info(conversion)
 return conversion
