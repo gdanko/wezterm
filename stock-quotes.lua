@@ -57,11 +57,11 @@ end
 
 function get_stock_quotes(config)
     stock_quote_data = {}
-    market_data = util.json_parse(config["status_bar"]["stock_quotes"]["data_file"])
+    market_data = util.json_parse(config["data_file"])
     if market_data ~= nil then
         for symbol, data in pairs(market_data["symbols"]) do
             if not util.has_value(indexes, symbol) then
-                if util.has_value(config["status_bar"]["stock_quotes"]["symbols"], symbol) then
+                if util.has_value(config["symbols"], symbol) then
                     if data["price"] ~= nil and data["last"] ~= nil then
                         local price = data["price"]
                         local last = data["last"]
@@ -89,7 +89,7 @@ end
 
 function get_stock_indexes(config)
     index_data = {}
-    market_data = util.json_parse(config["status_bar"]["stock_quotes"]["data_file"])
+    market_data = util.json_parse(config["data_file"])
     if market_data ~= nil then
         for symbol, data in pairs(market_data["symbols"]) do
             if util.has_value(indexes, symbol) then
@@ -106,23 +106,23 @@ function get_stock_indexes(config)
                         pct_change = string.format("%.2f", ((last - price) / last) * 100)
                     end
                     if symbol == "^DJI" then
-                        if config["status_bar"]["stock_quotes"]["indexes"]["show_djia"] then
+                        if config["indexes"]["show_djia"] then
                             table.insert(index_data, string.format("%s DOW %s %s%%", wezterm.nerdfonts.cod_graph_line, updown_arrow, pct_change))
                         end
                     elseif symbol == "^IXIC" then
-                        if config["status_bar"]["stock_quotes"]["indexes"]["show_nasdaq"] then
+                        if config["indexes"]["show_nasdaq"] then
                             table.insert(index_data, string.format("%s Nasdaq %s %s%%", wezterm.nerdfonts.cod_graph_line, updown_arrow, pct_change))
                         end
                     elseif symbol == "^GSPC" then
-                        if config["status_bar"]["stock_quotes"]["indexes"]["show_sp500"] then
+                        if config["indexes"]["show_sp500"] then
                             table.insert(index_data, string.format("%s S&P 500 %s %s%%", wezterm.nerdfonts.cod_graph_line, updown_arrow, pct_change))
                         end
                     elseif symbol == "GC=F" then
-                        if config["status_bar"]["stock_quotes"]["indexes"]["show_gold"] then
+                        if config["indexes"]["show_gold"] then
                             table.insert(index_data, string.format("%s Gold %s %s%%", wezterm.nerdfonts.cod_graph_line, updown_arrow, pct_change))
                         end
                     elseif symbol == "CL=F" then
-                        if config["status_bar"]["stock_quotes"]["indexes"]["show_crude"] then
+                        if config["indexes"]["show_crude"] then
                             table.insert(index_data, string.format("%s Crude Oil %s %s%%", wezterm.nerdfonts.cod_graph_line, updown_arrow, pct_change))
                         end
                     end
