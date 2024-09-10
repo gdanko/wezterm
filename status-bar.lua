@@ -1,5 +1,6 @@
 local battery_status = require "battery-status"
 local config_parser = require "parse-config"
+local stock_quotes = require "stock-quotes"
 local system_updates = require "system-updates"
 local github = require "github"
 local util = require "util.util"
@@ -17,14 +18,12 @@ local weather_config = config["status_bar"]["weather"]
 
 status_bar = {}
 
-function url_encode(input)
-    input = string.gsub(input, "([^%w _%-.%~])", function(c) return string.format("%%%02x", string.byte(c)) end)
-    return input
-end
-
 function status_bar.update_status_bar(cwd)
-    local cells = {}
+    -- update the data files as needed
+    stock_quotes.update_json(stock_quotes_config)
+    system_updates.update_json(system_updates_config)
 
+    local cells = {}
     -- cwd and github branch information
     if config["status_bar"]["toggles"]["show_cwd"] then
         if cwd then
@@ -79,9 +78,6 @@ function status_bar.update_status_bar(cwd)
 
     -- weather
     if weather_config["enabled"] then
-        -- Testing
-        -- https://github.com/chubin/wttr.in
-        -- curl wttr.in/:help
         local unit = ""
 
         if weather_config["use_celsius"] then
@@ -95,58 +91,14 @@ function status_bar.update_status_bar(cwd)
                 table.insert(cells, util.pad_string(1, 1, stdout))
             end
         end
-
-        -- action, weather_data = util.determine_action(weather_config)
-        -- if action == "display" then
-        --     unit = "F"
-        --     if weather_config["unit"] ~= "F" then
-        --         unit = "C"
-        --     end
-        --     degree_symbol = "°"
-        --     icon_id = weather_data["weather"][1]["icon"]
-        --     condition_id = weather_data["weather"][1]["id"]
-        --     current = weather_data["main"]["temp"]
-        --     high = weather_data["main"]["temp_max"]
-        --     low = weather_data["main"]["temp_min"]
-        --     if unit == "C" then
-        --         current = util.fahrenheit_to_celsius(current)
-        --         high = util.fahrenheit_to_celsius(high)
-        --         low = util.fahrenheit_to_celsius(low)
-        --     end
-        --     icon = weather.get_icon(icon_id, condition_id)
-
-        --     weather_status = {
-        --         current .. degree_symbol .. unit .. " " .. icon
-        --     }
-        --     if weather_config["show_low"] then
-        --         table.insert(weather_status, arrow_down .. " " .. low .. degree_symbol .. unit)
-        --     end
-        --     if weather_config["show_high"] then
-        --         table.insert(weather_status, arrow_up .. " " .. high .. degree_symbol .. unit)
-        --     end
-        --     table.insert(cells, util.pad_string(1, 1, table.concat(weather_status, " ")))
-        -- elseif action == "update" then
-        --     if weather_config["api_key"] == nil then
-        --         weather_data = "missing weather api key"
-        --         table.insert(cells, util.pad_string(1, 1, weather_data))
-        --     elseif weather_config["location"] == nil then
-        --         weather_data = "missing weather location"
-        --         table.insert(cells, util.pad_string(1, 1, weather_data))
-        --     else
-        --         appid = weather_config["api_key"]
-        --         location = string.gsub(weather_config["location"], " ", "%%20")
-        --         err = weather.write_data_file(weather_config["data_file"], location, appid)
-        --         -- Do something with the error
-        --     end
-        -- end
     end
 
     -- stock quotes
     if stock_quotes_config["enabled"] then
         local indexes = {"^DJI", "^IXIC", "^GSPC"}
         local index_data = {}
-        action, market_data = util.determine_action(stock_quotes_config)
-        if action == "display" then
+        market_data = util.json_parse(stock_quotes_config["data_file"])
+        if market_data ~= nil then
             for symbol, data in pairs(market_data["symbols"]) do
                 if not util.has_value(indexes, symbol) then
                     if util.has_value(stock_quotes_config["symbols"], symbol) then
@@ -202,52 +154,15 @@ function status_bar.update_status_bar(cwd)
             if #index_data > 0 then
                 table.insert(cells, wezterm.nerdfonts.cod_graph_line .. " " .. table.concat(index_data, "; "))
             end
-        elseif action == "update" then
-            local data = {
-                timestamp = util.get_timestamp(),
-                symbols = {},
-            }
-            local symbols_table = {"^DJI", "^IXIC", "^GSPC"}
-            for _, symbol in ipairs(stock_quotes_config["symbols"]) do
-                table.insert(symbols_table, symbol)
-            end
-            local url = "https://query1.finance.yahoo.com/v7/finance/spark?symbols=" .. table.concat(symbols_table, ",")
-            success, stdout, stderr = wezterm.run_child_process({"curl", url})
-            if success then
-                json_data = util.json_parse_string(stdout)
-                if json_data ~= nil then
-                    if json_data["spark"] ~= nil and json_data["spark"]["result"] ~= nil and #json_data["spark"]["result"] > 0 then
-                        for _, block in ipairs(json_data["spark"]["result"]) do
-                            symbol = block["symbol"]
-                            if data["symbols"][symbol] == nil then
-                                meta = block["response"][1]["meta"]
-                                data["symbols"][symbol] = {}
-                                data["symbols"][symbol]["price"] = meta["regularMarketPrice"]
-                                data["symbols"][symbol]["last"] = meta["previousClose"]
-                                data["symbols"][symbol]["currency"] = meta["currency"]
-                                data["symbols"][symbol]["symbol"] = meta["symbol"]
-                            end
-                        end
-                    end
-                    file = io.open(stock_quotes_config["data_file"], "w")
-                    file:write(wezterm.json_encode(data))
-                    file:close()
-                end
-            end
         end
     end
 
     -- system updates
-    -- This MUST run as the last scheduled check as it will interfere with other checks on Macs
-    -- 'softwareupdate --list' takes ~6 seconds to run and so the other checks cannot run in a timely manner
-    -- I'll find a better way to do this
     if system_updates_config["enabled"] then
-        action, update_data = util.determine_action(system_updates_config)
-        if action == "display" then
+        update_data = util.json_parse(system_updates_config["data_file"])
+        if update_data ~= nil then
             update_status = wezterm.nerdfonts.md_floppy .. " updates: " .. update_data["count"]
             table.insert(cells, util.pad_string(2, 2, update_status))
-        elseif action == "update" then
-            system_updates.find_updates(system_updates_config["data_file"])
         end
     end
 
