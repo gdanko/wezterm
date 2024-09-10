@@ -1,8 +1,28 @@
+local wezterm = require "wezterm"
 local util = require "util.util"
 
 system_updates = {}
 
-function system_updates.find_updates(data_file)
+function update_json(config)
+    needs_update = false
+    exists, err = util.file_exists(config["data_file"])
+    if exists then
+        json_data = util.json_parse(config["data_file"])
+        if json_data ~= nil then
+            if (util.get_timestamp() - json_data["timestamp"]) > (config["freshness_threshold"] * 3600) then
+                needs_update = true
+            end
+        end
+    else
+        needs_update = true
+    end
+
+    if needs_update then
+        system_updates.find_updates(config["data_file"])
+    end
+end
+
+function find_updates(data_file)
     local config = config_parser.get_config()
     if config["os_name"] == "darwin" then
         success, stdout, stderr = wezterm.run_child_process({"softwareupdate", "--list"})
@@ -70,5 +90,8 @@ function system_updates.find_updates(data_file)
         file:close()
     end
 end
+
+system_updates.find_updates = find_updates
+system_updates.update_json = update_json
 
 return system_updates
