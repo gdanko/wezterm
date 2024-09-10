@@ -80,7 +80,9 @@ function get_stock_quotes(config)
                 end
             end
         end
-        return stock_quote_data
+        if #stock_quote_data > 0 then
+            return stock_quote_data
+        end
     end
     return nil
 end
