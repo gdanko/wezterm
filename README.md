@@ -5,11 +5,11 @@
 * wezterm on either Darwin or Linux. I don't have a Windows computer to test on.
 
 ## Installation
-Clone the repository at the root of ~/.config. I use Dropbox so I can use the same config across multiple computers.
+Clone the repository at the root of ~/.config.
 
 ## Features
 * Generic default config that is pulled when wezterm is started.
-* Ability to override defaults on a per-hostname basis. `parse-config.lua` looks for `overrides.lua` and parses the overrides. Simply copy overrides.lua.SAMPLE to overrides.lua to use it. Any time you update the overrides file, WezTerm will re-read everything.
+* Ability to override defaults via an overrides file. `parse-config.lua` looks for `overrides.lua` and parses the overrides. Simply copy overrides.lua.SAMPLE to overrides.lua to use it. Any time you update the overrides file, WezTerm will reload everything.
 * iTerm2 color schemes (yes I know it's there by default) with the ability to randomize the scheme on configuration reload. Please see this [repo](https://github.com/gdanko/iterm-color-to-gnome-terminal).
 * Tab title can be process name (default) or cwd.
 * Fancy status bar stuff.
@@ -27,7 +27,7 @@ Clone the repository at the root of ~/.config. I use Dropbox so I can use the sa
   * Disk Usage
   * Network Throughput
   * WiFi Signal Strength
-* Weather
+* Weather (this requires a free weatherapi.com API key)
 
 ## To-Do
 * Alphabetize the stocks in the status bar. They're rendered out of order sometimes.
