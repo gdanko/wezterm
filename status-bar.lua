@@ -21,6 +21,7 @@ status_bar = {}
 function status_bar.update_status_bar(cwd)
     -- update the data files as needed
     stock_quotes.update_json(stock_quotes_config)
+    weather.update_json(weather_config)
 
     local cells = {}
     -- cwd and github branch information
@@ -77,31 +78,26 @@ function status_bar.update_status_bar(cwd)
 
     -- weather
     if weather_config["enabled"] then
-        local unit = ""
-
-        if weather_config["use_celsius"] then
-            unit = "&m"
-        end
-
-        if weather_config["location"] ~= nil then
-            url = string.format("wttr.in/%s?format=%%c%%t%s", weather_config["location"]:gsub(" ", "+"), unit)
-            success, stdout, stderr = wezterm.run_child_process({"curl", url})
-            if success then
-                table.insert(cells, util.pad_string(1, 1, stdout))
+        if weather_config["api_key"] == nil then
+            table.insert(cells, util.pad_string(2, 2, "Weather: Missing API key"))
+        else
+            weather_data = weather.get_weather(weather_config)
+            if weather_data ~= nil then
+                table.insert(cells, weather_data)
             end
         end
     end
 
     -- stock quotes
     if stock_quotes_config["enabled"] then
-        stock_quote_data = stock_quotes.get_stock_quotes(config)
+        stock_quote_data = stock_quotes.get_stock_quotes(stock_quotes_config)
         if stock_quote_data ~= nil then
             for _, stock_quote in ipairs(stock_quote_data) do
                 table.insert(cells, stock_quote)
             end
         end
 
-        stock_index_data = stock_quotes.get_stock_indexes(config)
+        stock_index_data = stock_quotes.get_stock_indexes(stock_quotes_config)
         if stock_index_data ~= nil then
             for _, stock_index in ipairs(stock_index_data) do
                 table.insert(cells, stock_index)
