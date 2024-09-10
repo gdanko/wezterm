@@ -1,7 +1,6 @@
 local battery_status = require "battery-status"
 local config_parser = require "parse-config"
 local stock_quotes = require "stock-quotes"
-local system_updates = require "system-updates"
 local github = require "github"
 local util = require "util.util"
 local weather = require "weather"
@@ -12,17 +11,16 @@ local config = config_parser.get_config()
 
 local stock_quotes_config = config["status_bar"]["stock_quotes"]
 local system_status_config = config["status_bar"]["system_status"]
-local system_updates_config = config["status_bar"]["system_updates"]
 local weather_config = config["status_bar"]["weather"]
 
 local system_status = require "system-status.system-status"
+
 
 status_bar = {}
 
 function status_bar.update_status_bar(cwd)
     -- update the data files as needed
     stock_quotes.update_json(stock_quotes_config)
-    system_updates.update_json(system_updates_config)
 
     local cells = {}
     -- cwd and github branch information
@@ -106,15 +104,6 @@ function status_bar.update_status_bar(cwd)
         stock_index_data = stock_quotes.get_stock_indexes(config)
         if stock_index_data ~= nil then
             table.insert(cells, stock_index_data)
-        end
-    end
-
-    -- system updates
-    if system_updates_config["enabled"] then
-        update_data = util.json_parse(system_updates_config["data_file"])
-        if update_data ~= nil then
-            update_status = wezterm.nerdfonts.md_floppy .. " updates: " .. update_data["count"]
-            table.insert(cells, util.pad_string(2, 2, update_status))
         end
     end
 
