@@ -12,7 +12,7 @@ function update_json(config)
     if exists then
         json_data = util.json_parse(config["data_file"])
         if json_data ~= nil then
-            if (util.get_timestamp() - json_data["timestamp"]) > (config["freshness_threshold"] * 3600) then
+            if (util.get_timestamp() - json_data["timestamp"]) > (config["interval"] * 3600) then
                 needs_update = true
             end
         end
