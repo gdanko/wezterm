@@ -14,7 +14,7 @@ function select_random_scheme(all_color_schemes)
     return keys[index]
 end
 
-function color_config.get_color_scheme(scheme_name, randomize_color_scheme)
+function get_color_scheme(scheme_name, randomize_color_scheme)
     local color_scheme_map = {}
     local default_color_scheme = {
         background   = "#dfdbc3",
@@ -49,5 +49,7 @@ function color_config.get_color_scheme(scheme_name, randomize_color_scheme)
     end
     return color_scheme_map
 end
+
+color_config.get_color_scheme = get_color_scheme
 
 return color_config
