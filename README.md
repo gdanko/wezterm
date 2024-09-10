@@ -18,7 +18,6 @@ Clone the repository at the root of ~/.config.
 * Battery percentage
 * Clock
 * Stock quotes
-* Git branch information for paths that are repositories
 * System stats
   * Uptime
   * CPU Usage
