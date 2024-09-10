@@ -103,7 +103,9 @@ function status_bar.update_status_bar(cwd)
 
         stock_index_data = stock_quotes.get_stock_indexes(config)
         if stock_index_data ~= nil then
-            table.insert(cells, stock_index_data)
+            for _, stock_index in ipairs(stock_index_data) do
+                table.insert(cells, stock_index)
+            end
         end
     end
 

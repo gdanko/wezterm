@@ -2,7 +2,7 @@ local wezterm = require "wezterm"
 local util = require "util.util"
 local stock_quotes = {}
 
-local indexes = {"^DJI", "^IXIC", "^GSPC"}
+local indexes = {"^DJI", "^IXIC", "^GSPC", "GC=F", "CL=F"}
 local arrow_down = wezterm.nerdfonts.cod_arrow_small_down
 local arrow_up = wezterm.nerdfonts.cod_arrow_small_up
 
@@ -25,7 +25,7 @@ function update_json(config)
             timestamp = util.get_timestamp(),
             symbols = {},
         }
-        local symbols_table = {"^DJI", "^IXIC", "^GSPC"}
+        local symbols_table = {"^DJI", "^IXIC", "^GSPC", "GC=F", "CL=F"}
         for _, symbol in ipairs(config["symbols"]) do
             table.insert(symbols_table, symbol)
         end
@@ -74,7 +74,7 @@ function get_stock_quotes(config)
                             updown_amount = string.format("%.2f", last - price)
                             pct_change = string.format("%.2f", ((last - price) / last) * 100)
                         end
-                        stock_quote = wezterm.nerdfonts.cod_graph_line .. " " .. symbol .. " $" .. price .. " " .. updown_arrow .. "$" .. updown_amount .. " (" .. pct_change .. "%)"
+                        stock_quote = string.format("%s %s $%s %s$%s (%s%%)", wezterm.nerdfonts.cod_graph_line, symbol, price, updown_arrow, updown_amount, pct_change)
                         table.insert(stock_quote_data, util.pad_string(2, 2, stock_quote))
                     end
                 end
@@ -107,22 +107,30 @@ function get_stock_indexes(config)
                     end
                     if symbol == "^DJI" then
                         if config["status_bar"]["stock_quotes"]["indexes"]["show_djia"] then
-                            table.insert(index_data, "DOW " .. updown_arrow .. " " .. pct_change .. "%")
+                            table.insert(index_data, string.format("%s DOW %s %s%%", wezterm.nerdfonts.cod_graph_line, updown_arrow, pct_change))
                         end
                     elseif symbol == "^IXIC" then
                         if config["status_bar"]["stock_quotes"]["indexes"]["show_nasdaq"] then
-                            table.insert(index_data, "Nasdaq " .. updown_arrow .. " " .. pct_change .. "%")
+                            table.insert(index_data, string.format("%s Nasdaq %s %s%%", wezterm.nerdfonts.cod_graph_line, updown_arrow, pct_change))
                         end
                     elseif symbol == "^GSPC" then
                         if config["status_bar"]["stock_quotes"]["indexes"]["show_sp500"] then
-                            table.insert(index_data, "S&P 500 " .. updown_arrow .. " " .. pct_change .. "%")
+                            table.insert(index_data, string.format("%s S&P 500 %s %s%%", wezterm.nerdfonts.cod_graph_line, updown_arrow, pct_change))
+                        end
+                    elseif symbol == "GC=F" then
+                        if config["status_bar"]["stock_quotes"]["indexes"]["show_gold"] then
+                            table.insert(index_data, string.format("%s Gold %s %s%%", wezterm.nerdfonts.cod_graph_line, updown_arrow, pct_change))
+                        end
+                    elseif symbol == "CL=F" then
+                        if config["status_bar"]["stock_quotes"]["indexes"]["show_crude"] then
+                            table.insert(index_data, string.format("%s Crude Oil %s %s%%", wezterm.nerdfonts.cod_graph_line, updown_arrow, pct_change))
                         end
                     end
                 end
             end
         end
         if #index_data > 0 then
-            return wezterm.nerdfonts.cod_graph_line .. " " .. table.concat(index_data, "; ")
+            return index_data
         end
     end
     return nil
