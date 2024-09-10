@@ -31,7 +31,7 @@ function config_parser.get_config()
             title_is_cwd = false
         },
         status_bar = {
-            update_interval = 3,
+            update_interval = 2,
             system_status = {
                 disk_list = {{mount_point = "/", unit = "Gi"}},
                 enabled = true,
