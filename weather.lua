@@ -60,17 +60,20 @@ function update_json(config)
 end
 
 function get_weather(config)
-    weather_data = util.json_parse(config["data_file"])
-    if weather_data ~= nil then
-        if config["use_celsius"] then
-            current_temp = weather_data["current"]["temp_c"]
-            unit = "C"
-        else
-            current_temp = weather_data["current"]["temp_f"]
-            unit = "F"
+    exists, err = util.file_exists(config["data_file"])
+    if exists then
+        weather_data = util.json_parse(config["data_file"])
+        if weather_data ~= nil then
+            if config["use_celsius"] then
+                current_temp = weather_data["current"]["temp_c"]
+                unit = "C"
+            else
+                current_temp = weather_data["current"]["temp_f"]
+                unit = "F"
+            end
+            weather = string.format("%s %s°%s", config["location"], current_temp, unit)
+            return util.pad_string(2, 2, weather)
         end
-        weather = string.format("%s %s°%s", config["location"], current_temp, unit)
-        return util.pad_string(2, 2, weather)
     end
     return nil
 end

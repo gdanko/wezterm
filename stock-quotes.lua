@@ -57,31 +57,34 @@ end
 
 function get_stock_quotes(config)
     stock_quote_data = {}
-    market_data = util.json_parse(config["data_file"])
-    if market_data ~= nil then
-        for symbol, data in pairs(market_data["symbols"]) do
-            if not util.has_value(indexes, symbol) then
-                if util.has_value(config["symbols"], symbol) then
-                    if data["price"] ~= nil and data["last"] ~= nil then
-                        local price = data["price"]
-                        local last = data["last"]
-                        if price > last then
-                            updown_arrow = arrow_up
-                            updown_amount = string.format("%.2f", price - last)
-                            pct_change = string.format("%.2f", ((price - last) / last) * 100)
-                        else
-                            updown_arrow = arrow_down
-                            updown_amount = string.format("%.2f", last - price)
-                            pct_change = string.format("%.2f", ((last - price) / last) * 100)
+    exists, err = util.file_exists(config["data_file"])
+    if exists then
+        market_data = util.json_parse(config["data_file"])
+        if market_data ~= nil then
+            for symbol, data in pairs(market_data["symbols"]) do
+                if not util.has_value(indexes, symbol) then
+                    if util.has_value(config["symbols"], symbol) then
+                        if data["price"] ~= nil and data["last"] ~= nil then
+                            local price = data["price"]
+                            local last = data["last"]
+                            if price > last then
+                                updown_arrow = arrow_up
+                                updown_amount = string.format("%.2f", price - last)
+                                pct_change = string.format("%.2f", ((price - last) / last) * 100)
+                            else
+                                updown_arrow = arrow_down
+                                updown_amount = string.format("%.2f", last - price)
+                                pct_change = string.format("%.2f", ((last - price) / last) * 100)
+                            end
+                            stock_quote = string.format("%s %s $%s %s$%s (%s%%)", wezterm.nerdfonts.cod_graph_line, symbol, price, updown_arrow, updown_amount, pct_change)
+                            table.insert(stock_quote_data, util.pad_string(2, 2, stock_quote))
                         end
-                        stock_quote = string.format("%s %s $%s %s$%s (%s%%)", wezterm.nerdfonts.cod_graph_line, symbol, price, updown_arrow, updown_amount, pct_change)
-                        table.insert(stock_quote_data, util.pad_string(2, 2, stock_quote))
                     end
                 end
             end
-        end
-        if #stock_quote_data > 0 then
-            return stock_quote_data
+            if #stock_quote_data > 0 then
+                return stock_quote_data
+            end
         end
     end
     return nil
