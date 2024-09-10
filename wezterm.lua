@@ -233,7 +233,7 @@ local config_status_bar = {
         -- Each element holds the text for a cell in a "powerline" style << fade
         local cwd = util.get_cwd(pane)
 
-        -- Get system stats using wsstats
+        -- Get system stats
         cells = status_bar.update_status_bar(cwd)
 
         -- The powerline < symbol
