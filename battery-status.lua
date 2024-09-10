@@ -6,7 +6,7 @@ function to_int(input)
     return math.floor(input)
 end
 
-function battery_status.get_battery_status(b)
+function get_battery_status(b)
     local icon = ""
     local soc = b.state_of_charge * 100
     local state = b.state
@@ -37,5 +37,7 @@ function battery_status.get_battery_status(b)
     
     return icon, string.format('%.0f%%', soc)
 end
+
+battery_status.get_battery_status = get_battery_status
 
 return battery_status
