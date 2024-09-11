@@ -26,7 +26,7 @@ function update_json(config)
             timestamp = util.get_timestamp(),
             symbols = {},
         }
-        local symbols_table = {"^DJI", "^IXIC", "^GSPC", "GC=F", "CL=F"}
+        local symbols_table = indexes
         for _, symbol in ipairs(config["symbols"]) do
             table.insert(symbols_table, symbol)
         end
