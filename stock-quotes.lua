@@ -8,11 +8,12 @@ local arrow_up = wezterm.nerdfonts.cod_arrow_small_up
 
 function update_json(config)
     needs_update = false
+    number, multiplier = util.get_number_and_multiplier(config["interval"])
     exists, err = util.file_exists(config["data_file"])
     if exists then
         json_data = util.json_parse(config["data_file"])
         if json_data ~= nil then
-            if (util.get_timestamp() - json_data["timestamp"]) > (config["interval"] * 3600) then
+            if (util.get_timestamp() - json_data["timestamp"]) > (number * multiplier) then
                 needs_update = true
             end
         end
