@@ -10,11 +10,12 @@ function update_json(config)
         interfaces = {}
     }
     needs_update = false
+    number, multiplier = util.get_number_and_multiplier(config["status_bar"]["wifi_status"]["interval"])
     exists, err = util.file_exists(config["status_bar"]["wifi_status"]["data_file"])
     if exists then
         json_data = util.json_parse(config["status_bar"]["wifi_status"]["data_file"])
         if json_data ~= nil then
-            if (util.get_timestamp() - json_data["timestamp"]) > 10 then
+            if (util.get_timestamp() - json_data["timestamp"]) > (number * multiplier) then
                 needs_update = true
             end
         end
