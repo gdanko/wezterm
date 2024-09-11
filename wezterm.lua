@@ -300,34 +300,6 @@ local config_test = {
     status_update_interval = user_config["status_bar"]["update_interval"] * 1000
 }
 
-wezterm.on("format-tab-title", function(tab, tabs, panes, config, hover, max_width)
-    local pane = tab.active_pane
-    local title = util.basename(pane.foreground_process_name)
-    local cwd = nil
-    
-    if user_config["tabs"]["title_is_cwd"] then
-        local cwd_uri = pane.current_working_dir
-        if cwd_uri then
-            cwd = cwd_uri.file_path
-            cwd = string.gsub(cwd, wezterm.home_dir, "~")
-            if cwd ~= nil then
-                title = cwd
-            end
-        end
-    end
-
-    local color = "#41337c"
-    if tab.is_active then
-        color = "#301f7c"
-    elseif hover then
-        color = "green"
-    end
-    return {
-        { Background = { Color = color } },
-        { Text = util.pad_string(2, 2, title)},
-    }
-end)
-
 configs = {
     config_appearance,
     config_color_scheme,
