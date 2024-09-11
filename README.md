@@ -29,5 +29,4 @@ Clone the repository at the root of ~/.config.
 * Weather (this requires a free weatherapi.com API key)
 
 ## To-Do
-* Alphabetize the stocks in the status bar. They're rendered out of order sometimes.
 * Other stuff
