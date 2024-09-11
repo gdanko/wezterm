@@ -2,7 +2,7 @@ local wezterm = require "wezterm"
 
 local overrides = {}
 
-function overrides.override_config(config)
+function override_config(config)
     config["display"]["color_scheme"]["enable_gradient"] = true
     config["display"]["font_size"] = 12
     config["status_bar"]["stock_quotes"]["symbols"] = {"MSFT", "AAPL"}
@@ -15,5 +15,7 @@ function overrides.override_config(config)
     config["status_bar"]["weather"]["unit"] = "C"
     return config
 end
+
+overrides.override_config = override_config
 
 return overrides
