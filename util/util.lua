@@ -1,16 +1,6 @@
 local folderOfThisFile = (...):match("(.-)[^%.]+$")
 local util = {}
 
-function execute_command(cwd, command)
-    local command = "cd " .. cwd .. " &&  " .. command
-    local handle = io.popen(command)
-    local output = handle:read('*all')
-    local exit = {handle:close()}
-    local return_code = exit[3]
-    local command_out = output:gsub("\n", "")
-    return return_code, command_out
-end
-
 function has_value(array, value)
     for _, element in ipairs(array) do
         if element == value then
@@ -20,13 +10,13 @@ function has_value(array, value)
     return false
 end
 
-util.execute_command = execute_command
 util.has_value = has_value
 
 local conversion = require(folderOfThisFile .. "conversion")
 util.byte_converter = conversion.byte_converter
 util.duration = conversion.duration
 util.fahrenheit_to_celsius = conversion.fahrenheit_to_celsius
+util.get_number_and_multiplier = conversion.get_number_and_multiplier
 util.process_bytes = conversion.process_bytes
 
 local filesystem = require(folderOfThisFile .. "filesystem")

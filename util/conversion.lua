@@ -43,19 +43,19 @@ function byte_converter(bytes, unit)
     return string.format("%.2f %s%s", bytes / math.pow(divisor, multiple), unit, suffix)
 end
 
-function duration(seconds)
+function duration(delta)
     local years = 0
     local days = 0
-    seconds = math.floor(seconds)
-    days = math.floor(seconds / 86400)
+    delta = math.floor(delta)
+    days = math.floor(delta / 86400)
     if days > 365 then
         years, days = divide(days, 366)
     end
-    hours = math.floor(((seconds - (days * 86400)) / 3600))
-    minutes = math.floor(((seconds - days * 86400 - hours * 3600) / 60))
-    secs = math.floor((seconds - (days * 86400) - (hours * 3600) - (minutes * 60)))
+    hours = math.floor(((delta - (days * 86400)) / 3600))
+    minutes = math.floor(((delta - days * 86400 - hours * 3600) / 60))
+    seconds = math.floor((delta - (days * 86400) - (hours * 3600) - (minutes * 60)))
 
-    return years, days, hours, minutes, secs
+    return years, days, hours, minutes, seconds
 end
 
 function fahrenheit_to_celsius(temp)
@@ -63,9 +63,26 @@ function fahrenheit_to_celsius(temp)
     return string.format("%.2f", c)
 end
 
+function get_number_and_multiplier(interval)
+    multiplier_map = {
+        ["s"] = 1,
+        ["m"] = 60,
+        ["h"] = 3600,
+        ["d"] = 86400,
+    }
+    number, multiplier = interval:match("^(%d+)(%a)")
+    if number ~= nil and multiplier ~= nil then
+        if multiplier_map[multiplier] ~= nil then
+            return number, multiplier_map[multiplier]
+        end
+    end
+    return 15, multiplier_map["m"]
+end
+
 conversion.byte_converter = byte_converter
 conversion.duration = duration
 conversion.fahrenheit_to_celsius = fahrenheit_to_celsius
+conversion.get_number_and_multiplier = get_number_and_multiplier
 conversion.process_bytes = process_bytes
 
 return conversion
