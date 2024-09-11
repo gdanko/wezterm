@@ -8,6 +8,18 @@ if not util.is_dir(datadir) then
     os.execute("mkdir -p " .. datadir)
 end
 
+--[=====[
+    Some things like weather and stock quotes will have an "interval" filed. This
+    allows you to check things on a periodic basis and avoid getting rate-limited
+    when using APIs.
+
+    The format of the interval filed is <number><unit>, e.g., 15m for 15 minutes.
+    Valid units are (s)econd, (m)inute, (h)our, and (d)ay. An invalid entry will
+    result in the default of 15m. In other words, if you change an interval to
+    "10z", the function to determine the number and multiplier will not be able to
+    recognize the input and will default to 15 minutes.
+--]=====]
+
 function get_config()
     local config = {
         display = {
@@ -26,9 +38,6 @@ function get_config()
                 top    = 0,
                 bottom = 0
             }
-        },
-        tabs = {
-            title_is_cwd = false
         },
         status_bar = {
             update_interval = 2,
@@ -49,7 +58,6 @@ function get_config()
             stock_quotes = {
                 data_file = util.path_join({datadir, "stock-quotes.json"}),
                 enabled = true,
-                freshness_threshold = 60, -- minutes
                 indexes = {
                     show_djia = false,
                     show_nasdaq = false,
@@ -57,23 +65,16 @@ function get_config()
                     show_gold = false,
                     show_crude = false,
                 },
-                interval = 15, -- decreasing too aggressively might get you rate-limited
+                interval = "15m", -- decreasing too aggressively might get you rate-limited
                 symbols = {
                     "GOOG",
                     "AAPL"
                 }
             },
-            system_updates = {
-                data_file = util.path_join({datadir, "system-updates.json"}),
-                enabled = false,
-                freshness_threshold = 60, -- minutes
-                interval = 30,
-            },
             toggles = {
                 show_battery = false,
                 show_branch_info = true,
                 show_clock = false,
-                show_cwd = false,
                 show_hostname = false,
             },
             weather = {
@@ -81,14 +82,14 @@ function get_config()
                 conditions_file = util.path_join({datadir, "weather_conditions.json"}),
                 data_file = util.path_join({datadir, "weather.json"}),
                 enabled = false,
-                interval = 15, -- decreasing too aggressively might get you rate-limited
+                interval = "15m", -- decreasing too aggressively might get you rate-limited
                 location = "San Diego, CA, US",
                 use_celsius = true,
             },
             wifi_status = {
                 data_file = util.path_join({datadir, "wifi-status.json"}),
                 enabled = true,
-                interval = 1,
+                interval = "10s",
             }
         }
     }
