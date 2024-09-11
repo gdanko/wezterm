@@ -64,6 +64,9 @@ function fahrenheit_to_celsius(temp)
 end
 
 function get_number_and_multiplier(interval)
+    if type(interval) ~= "string" then
+        interval = tostring(interval)
+    end
     multiplier_map = {
         ["s"] = 1,
         ["m"] = 60,
@@ -76,7 +79,7 @@ function get_number_and_multiplier(interval)
             return number, multiplier_map[multiplier]
         end
     end
-    return 15, multiplier_map["m"]
+    return get_number_and_multiplier("10m")
 end
 
 conversion.byte_converter = byte_converter
