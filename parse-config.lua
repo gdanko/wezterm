@@ -91,7 +91,10 @@ function get_config()
                 enabled = true,
                 interval = "10s",
             }
-        }
+        },
+        tabs = {
+            title_is_cwd = true,
+        },
     }
 
     -- set some OS-specific defaults
