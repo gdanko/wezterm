@@ -12,7 +12,7 @@ function override_config(config)
     config["status_bar"]["weather"]["api_key"] = "<mykey>"
     config["status_bar"]["weather"]["enabled"] = true
     config["status_bar"]["weather"]["location"] = "Los Angeles, CA, US"
-    config["status_bar"]["weather"]["unit"] = "C"
+    config["status_bar"]["weather"]["use_celsius"] = true
     return config
 end
 
