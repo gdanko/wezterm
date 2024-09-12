@@ -111,7 +111,9 @@ function status_bar.update_status_bar(cwd)
         if system_status_config["toggles"]["show_disk_usage"] then
             disk_usage = system_status.get_disk_usage(config)
             if disk_usage ~= nil then
-                table.insert(cells, disk_usage)
+                for _, disk_usage_data in ipairs(disk_usage) do
+                    table.insert(cells, disk_usage_data)
+                end
             end
         end
 
