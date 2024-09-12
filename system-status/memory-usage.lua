@@ -37,7 +37,7 @@ function darwin_memory_usage(config)
     return nil
 end
 
-function linux_memory_usage()
+function linux_memory_usage(config)
     success, stdout, stderr = wezterm.run_child_process({"free", "-b", "-w"})
     if success then
         bytes_total, bytes_used, bytes_free, bytes_shared, bytes_buffers, bytes_cache, bytes_available = stdout:match("Mem:%s+(%d+)%s+(%d+)%s+(%d+)%s+(%d+)%s+(%d+)%s+(%d+)%s+(%d+)")
