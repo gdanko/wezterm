@@ -72,7 +72,7 @@ function get_wifi_status(config)
         if json_data ~= nil then
             for interface, signal in pairs(json_data["interfaces"]) do
                 signal = tonumber(signal)
-                interface_data = util.pad_string(2, 2, string.format("%s: %s %s dBm", interface, get_icon(signal), signal))
+                interface_data = util.pad_string(2, 2, string.format("%s %s %s dBm", get_icon(signal), interface, signal))
                 table.insert(wifi_status, interface_data)
             end
         end
