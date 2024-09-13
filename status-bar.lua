@@ -47,7 +47,9 @@ function status_bar.update_status_bar(cwd)
         else
             weather_data = weather.get_weather(weather_config)
             if weather_data ~= nil then
-                table.insert(cells, weather_data)
+                for _, location_data in ipairs(weather_data) do
+                    table.insert(cells, location_data)
+                end
             end
         end
     end
