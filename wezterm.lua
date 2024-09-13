@@ -67,7 +67,6 @@ end
 
 local config_environment = {
     enabled = config_environment_enabled,
-    adjust_window_size_when_changing_font_size = true,
     audible_bell = "Disabled",
     automatically_reload_config = true,
     pane_focus_follows_mouse = true, -- Doesn't seem to work??
@@ -79,6 +78,12 @@ local config_environment = {
 }
 
 local config_fonts = {
+    window_frame = {
+        font = wezterm.font { family = user_config["tab_bar_font"], weight = "Regular" },
+        font_size = user_config["tab_bar_font_size"],
+    },
+    adjust_window_size_when_changing_font_size = false,
+    hide_tab_bar_if_only_one_tab = true,
     enabled = config_fonts_enabled,
     font_size = user_config["display"]["font_size"],
     font_rasterizer = "FreeType",
