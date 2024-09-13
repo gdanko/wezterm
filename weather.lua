@@ -76,7 +76,7 @@ function get_weather(config)
                     current_temp = weather_data["current"]["temp_f"]
                     unit = "F"
                 end
-                weather = string.format("%s, %s %s°%s", icon, config["location"], current_temp, unit)
+                weather = string.format("%s, %s %s°%s", icon, config["location"], math.floor(current_temp), unit)
             else
                 weather = string.format("Weather: %s", weather_data["error"]["message"])
             end
