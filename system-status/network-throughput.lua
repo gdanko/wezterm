@@ -11,7 +11,7 @@ function darwin_network_throughput(config)
                 local r1, s1 = util.network_data_darwin(interface)
                 _, _, _ = wezterm.run_child_process({"sleep", "1"})
                 local r2, s2 = util.network_data_darwin(interface)
-                network_throughput = string.format("%s %s RX / %s TX", interface, util.process_bytes(r2 - r1), util.process_bytes(s2 - s1))
+                network_throughput = string.format("%s %s %s RX / %s TX", wezterm.nerdfonts.md_network, interface, util.process_bytes(r2 - r1), util.process_bytes(s2 - s1))
                 return util.pad_string(2, 2, network_throughput)
             end
         end
