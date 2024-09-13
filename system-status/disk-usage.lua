@@ -30,7 +30,6 @@ function linux_disk_usage(config)
     disk_usage_data = {}
     disk_list = config["status_bar"]["system_status"]["disk_list"]
     if disk_list ~= nil then
-        wezterm.log_info(disk_list)
         if #disk_list > 0 then
             for _, disk_item in ipairs(disk_list) do
                 success, stdout, stderr = wezterm.run_child_process({"/bin/df", "-k", disk_item["mount_point"]})
