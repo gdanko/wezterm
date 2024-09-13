@@ -79,15 +79,27 @@ local config_environment = {
 
 local config_fonts = {
     window_frame = {
-        font = wezterm.font { family = user_config["tab_bar_font"], weight = "Regular" },
-        font_size = user_config["tab_bar_font_size"],
+        font = wezterm.font {
+            family  = user_config["display"]["tab_bar_font"]["family"],
+            weight  = user_config["display"]["tab_bar_font"]["weight"],
+            stretch = user_config["display"]["tab_bar_font"]["stretch"],
+        },
+        font_size = user_config["display"]["tab_bar_font"]["size"],
     },
     adjust_window_size_when_changing_font_size = false,
     hide_tab_bar_if_only_one_tab = true,
     enabled = config_fonts_enabled,
-    font_size = user_config["display"]["font_size"],
+    font_size = user_config["display"]["terminal_font"]["size"],
     font_rasterizer = "FreeType",
     font_shaper = "Harfbuzz",
+    font = wezterm.font_with_fallback{
+        {
+            family  = user_config["display"]["terminal_font"]["family"],
+            weight  = user_config["display"]["terminal_font"]["weight"],
+            stretch = user_config["display"]["terminal_font"]["stretch"],
+        }
+    },
+    -- https://wezfurlong.org/wezterm/config/lua/config/font_rules.html
     font_rules = {
         {
             italic        = true,
@@ -97,7 +109,13 @@ local config_fonts = {
             reverse       = true,
             strikethrough = true,
             invisible     = false,
-            font          = wezterm.font_with_fallback({"JetBrains Mono", "SF Mono Regular"})
+            font          = wezterm.font_with_fallback{
+                {
+                    family  = user_config["display"]["terminal_font"]["family"],
+                    weight  = user_config["display"]["terminal_font"]["weight"],
+                    stretch = user_config["display"]["terminal_font"]["stretch"],
+                }
+            }
         }
     }
 }
@@ -256,9 +274,9 @@ local config_status_bar = {
             -- "#9e52ff",
             -- "#933dff",
             -- "#8729ff",
-            "#7c14ff",
-            "#7100ff",
-            "#6800eb",
+            -- "#7c14ff",
+            -- "#7100ff",
+            -- "#6800eb",
             "#5f00d6",
             "#5600c2",
             "#4d00ad",
