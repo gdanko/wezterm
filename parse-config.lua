@@ -101,9 +101,13 @@ function get_config()
     if (wezterm.target_triple == "x86_64-apple-darwin") or (wezterm.target_triple == "aarch64-apple-darwin") then
         config["keymod"] = "SUPER"
         config["os_name"] = "darwin"
+        config["tab_bar_font"] = "Monaco"
+        config["tab_bar_font_size"] = 9
     elseif (wezterm.target_triple == "x86_64-unknown-linux-gnu") or (wezterm.target_triple == "aarch64-unknown-linux-gnu") then
         config["keymod"] = "SHIFT|CTRL"
         config["os_name"] = "linux"
+        config["tab_bar_font"] = "Noto Sans"
+        config["tab_bar_font_size"] = 9
     end
 
     -- find the Linux distro
