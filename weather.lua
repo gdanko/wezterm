@@ -19,16 +19,22 @@ function update_json(config)
     end
 
     if needs_update then
-        url = string.format("http://api.weatherapi.com/v1/forecast.json?key=%s&q=%s&days=%s&aqi=yes&alerts=yes", config["api_key"], config["location"]:gsub(" ", "%%20"), "2")
-        success, stdout, stderr = wezterm.run_child_process({"curl", url})
-        if success then
-            weather_data = util.json_parse_string(stdout)
-            if weather_data ~= nil then
-                weather_data["timestamp"] = util.get_timestamp()
-                file = io.open(config["data_file"], "w")
-                file:write(wezterm.json_encode(weather_data))
-                file:close()
+        weather = {
+            locations = {}
+        }
+        for _, location in ipairs(config["locations"]) do
+            url = string.format("http://api.weatherapi.com/v1/forecast.json?key=%s&q=%s&days=%s&aqi=yes&alerts=yes", config["api_key"], location:gsub(" ", "%%20"), "2")
+            success, stdout, stderr = wezterm.run_child_process({"curl", url})
+            if success then
+                weather_data = util.json_parse_string(stdout)
+                if weather_data ~= nil then
+                    weather["locations"][location] = weather_data
+                end
             end
+            weather["timestamp"] = util.get_timestamp()
+            file = io.open(config["data_file"], "w")
+            file:write(wezterm.json_encode(weather))
+            file:close()
         end
 
         needs_update = false
@@ -61,26 +67,34 @@ function update_json(config)
 end
 
 function get_weather(config)
+    weather_output = {}
     exists, err = util.file_exists(config["data_file"])
     if exists then
         weather_data = util.json_parse(config["data_file"])
-        if weather_data ~= nil then
-            if weather_data["error"] == nil then
-                condition_code = weather_data["current"]["condition"]["code"]
-                is_day = weather_data["current"]["is_day"]
-                icon = get_weather_icon(condition_code, is_day)
-                if config["use_celsius"] then
-                    current_temp = weather_data["current"]["temp_c"]
-                    unit = "C"
+        for location, location_data in pairs(weather_data["locations"]) do
+            if location_data ~= nil then
+                if location_data["error"] == nil then
+                    condition_code = location_data["current"]["condition"]["code"]
+                    is_day = location_data["current"]["is_day"]
+                    icon = get_weather_icon(condition_code, is_day)
+                    if config["use_celsius"] then
+                        current_temp = location_data["current"]["temp_c"]
+                        unit = "C"
+                    else
+                        current_temp = location_data["current"]["temp_f"]
+                        unit = "F"
+                    end
+                    weather = string.format("%s %s %s°%s", icon, location_data["location"]["name"], math.floor(current_temp), unit)
+                    table.insert(weather_output, util.pad_string(2, 2, weather))
                 else
-                    current_temp = weather_data["current"]["temp_f"]
-                    unit = "F"
+                    weather = string.format("Weather: %s", location_data["error"]["message"])
+                    table.insert(weather_output, util.pad_string(2, 2, weather))
+
                 end
-                weather = string.format("%s, %s %s°%s", icon, config["location"], math.floor(current_temp), unit)
-            else
-                weather = string.format("Weather: %s", weather_data["error"]["message"])
             end
-            return util.pad_string(2, 2, weather)
+        end
+        if #weather_output > 0 then
+            return weather_output
         end
     end
     return nil
