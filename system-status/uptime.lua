@@ -10,11 +10,9 @@ function darwin_uptime(config)
         success, stdout, stderr = wezterm.run_child_process({"/bin/date", "-j", "-f", "%a %b %d %H:%M:%S %Y", timestamp, "+%s"})
         if success then
             delta = util.get_timestamp() - stdout
-            years, days, hours, minutes, seconds = util.duration(delta)
+            days, hours, minutes, seconds = util.duration(delta)
             local uptime = {"up"}
-            if years > 0 then
-                table.insert(uptime, string.format("%d %s", years, util.get_plural(years, "year")))
-            end            if days > 0 then
+            if days > 0 then
                 table.insert(uptime, string.format("%d %s", days, util.get_plural(days, "day")))
             end
             table.insert(uptime, string.format("%d:%02d", hours, minutes))
@@ -27,11 +25,8 @@ end
 function linux_uptime(config)
     success, stdout, stderr = wezterm.run_child_process({"cut", "-f1", "-d.", "/proc/uptime"})
     if success then
-        years, days, hours, minutes, seconds = duration(stdout)
+        days, hours, minutes, seconds = duration(stdout)
         local uptime = {"up"}
-        if years > 0 then
-            table.insert(uptime, string.format("%d %s", years, util.get_plural(years, "year")))
-        end
         if days > 0 then
             table.insert(uptime, string.format("%d %s", days, util.get_plural(days, "day")))
         end

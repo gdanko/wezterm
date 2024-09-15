@@ -44,18 +44,13 @@ function byte_converter(bytes, unit)
 end
 
 function duration(delta)
-    local years = 0
-    local days = 0
     delta = math.floor(delta)
     days = math.floor(delta / 86400)
-    if days > 365 then
-        years, days = divide(days, 366)
-    end
     hours = math.floor(((delta - (days * 86400)) / 3600))
     minutes = math.floor(((delta - days * 86400 - hours * 3600) / 60))
     seconds = math.floor((delta - (days * 86400) - (hours * 3600) - (minutes * 60)))
 
-    return years, days, hours, minutes, seconds
+    return days, hours, minutes, seconds
 end
 
 function fahrenheit_to_celsius(temp)
