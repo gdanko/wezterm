@@ -74,18 +74,20 @@ function get_weather(config)
         for location, location_data in pairs(weather_data["locations"]) do
             if location_data ~= nil then
                 if location_data["error"] == nil then
-                    condition_code = location_data["current"]["condition"]["code"]
-                    is_day = location_data["current"]["is_day"]
-                    icon = get_weather_icon(condition_code, is_day)
-                    if config["use_celsius"] then
-                        current_temp = location_data["current"]["temp_c"]
-                        unit = "C"
-                    else
-                        current_temp = location_data["current"]["temp_f"]
-                        unit = "F"
+                    if util.has_value(config["locations"], location) then
+                        condition_code = location_data["current"]["condition"]["code"]
+                        is_day = location_data["current"]["is_day"]
+                        icon = get_weather_icon(condition_code, is_day)
+                        if config["use_celsius"] then
+                            current_temp = location_data["current"]["temp_c"]
+                            unit = "C"
+                        else
+                            current_temp = location_data["current"]["temp_f"]
+                            unit = "F"
+                        end
+                        weather = string.format("%s %s %s°%s", icon, location_data["location"]["name"], math.floor(current_temp), unit)
+                        table.insert(weather_output, util.pad_string(2, 2, weather))
                     end
-                    weather = string.format("%s %s %s°%s", icon, location_data["location"]["name"], math.floor(current_temp), unit)
-                    table.insert(weather_output, util.pad_string(2, 2, weather))
                 else
                     weather = string.format("Weather: %s", location_data["error"]["message"])
                     table.insert(weather_output, util.pad_string(2, 2, weather))
