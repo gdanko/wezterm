@@ -3,6 +3,8 @@ local config_parser = require "parse-config"
 local status_bar = require "status-bar"
 local util = require "util.util"
 local wezterm = require "wezterm"
+local username = os.getenv('USER')
+local hostname = wezterm.hostname()
 
 local act = wezterm.action
 
@@ -334,7 +336,7 @@ wezterm.on("format-tab-title", function(tab, tabs, panes, config, hover, max_wid
             cwd = cwd_uri.file_path
             cwd = string.gsub(cwd, wezterm.home_dir, "~")
             if cwd ~= nil then
-                title = cwd
+                title = string.format("%s@%s: %s", username, hostname, cwd)
             end
         end
     end
