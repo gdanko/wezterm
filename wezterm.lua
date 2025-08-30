@@ -138,9 +138,6 @@ local config_general = {
         "zsh",
     },
     window_close_confirmation = "AlwaysPrompt",
-    set_environment_variables = {
-        PATH = "/opt/homebrew/bin" .. ":" .. os.getenv("PATH") -- May not be working
-    }
 }
 
 local config_keys = {
@@ -366,7 +363,7 @@ configs = {
     config_test,
 }
 
-full_config = {}
+full_config = wezterm.config_builder()
 for index, block in ipairs(configs) do
     if block["enabled"] ~= nil then
         if block["enabled"] == true then
