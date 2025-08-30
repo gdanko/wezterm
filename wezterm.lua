@@ -140,6 +140,7 @@ local config_general = {
     window_close_confirmation = "AlwaysPrompt",
 }
 
+-- Configure keys and hot keys
 local config_keys = {
     enabled = config_keys_enabled,
     keys = {
@@ -241,6 +242,7 @@ local config_keys = {
     swap_backspace_and_delete = false,
 }
 
+-- Tab configuration
 local config_tabs = {
     enabled = config_tabs_enabled,
     hide_tab_bar_if_only_one_tab = false,
@@ -250,6 +252,7 @@ local config_tabs = {
     use_fancy_tab_bar = true,
 }
 
+-- Manage the status bar colorization and content
 local config_status_bar = {
     wezterm.on('update-right-status', function(window, pane)
         -- Each element holds the text for a cell in a "powerline" style << fade
@@ -317,11 +320,13 @@ local config_status_bar = {
       end)
 }
 
+-- Temporary things for testing
 local config_test = {
     enabled = config_test_enabled,
     status_update_interval = user_config["status_bar"]["update_interval"] * 1000
 }
 
+-- Format the tab title
 wezterm.on("format-tab-title", function(tab, tabs, panes, config, hover, max_width)
     local pane = tab.active_pane
     local title = util.basename(pane.foreground_process_name)
@@ -351,6 +356,7 @@ wezterm.on("format-tab-title", function(tab, tabs, panes, config, hover, max_wid
     }
 end)
 
+-- Define the different configuration blocks (sections)
 configs = {
     config_appearance,
     config_color_scheme,
@@ -363,7 +369,10 @@ configs = {
     config_test,
 }
 
+-- Define the configuration object
 full_config = wezterm.config_builder()
+
+-- Iterate the configuration blocks and if they're enabled, parse them
 for index, block in ipairs(configs) do
     if block["enabled"] ~= nil then
         if block["enabled"] == true then
