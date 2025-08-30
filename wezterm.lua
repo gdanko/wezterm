@@ -10,7 +10,7 @@ local act = wezterm.action
 
 local user_config = config_parser.get_config()
 
--- Enable/disable config blocks
+-- Enable/disable config blocks at the top level
 config_appearance_enabled           = true
 config_color_scheme_enabled         = true
 config_environment_enabled          = true
