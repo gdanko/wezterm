@@ -274,6 +274,11 @@ local config_tabs = {
 -- Manage the status bar colorization and content
 local config_status_bar = {
     wezterm.on('update-right-status', function(window, pane)
+        -- ONLY UPDATE IF THE SCREEN WIDTH IS ADEQUATE
+        -- 1. Measure width of cells
+        -- 2. If width is > screen width
+        -- 3. Remove elements as needed.... will require some thought
+
         -- Each element holds the text for a cell in a "powerline" style << fade
         local cwd = util.get_cwd(pane)
 
