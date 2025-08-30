@@ -126,8 +126,11 @@ local config_general = {
     enabled = config_general_enabled,
     check_for_updates = true,
     check_for_updates_interval_seconds = 86400,
+    clean_exit_codes = { 0 },
     default_cwd = wezterm.home_dir,
     exit_behavior = "CloseOnCleanExit",
+    exit_behavior_messaging = "Verbose",
+    hide_mouse_cursor_when_typing = true,
     skip_close_confirmation_for_processes_named = {
         "ash",
         "bash",
@@ -156,14 +159,6 @@ local config_keys = {
                 local dims = pane:get_dimensions()
                 local txt = pane:get_text_from_region(0, dims.scrollback_top, 0, dims.scrollback_top + dims.scrollback_rows)
                 window:copy_to_clipboard(txt:match("^%s*(.-)%s*$")) -- trim leading and trailing whitespace
-            end)
-        },
-        {
-            key =  "a",
-            mods = user_config["keymod"],
-            action = wezterm.action_callback(function(window, pane)
-                local selected = pane:get_lines_as_text(pane:get_dimensions().scrollback_rows)
-                window:copy_to_clipboard(selected, "Clipboard")
             end)
         },
         {
@@ -206,6 +201,30 @@ local config_keys = {
                 }
             }
         },
+        {
+            key = "p",
+            mods = user_config["keymod"],
+            action = wezterm.action.ActivateCommandPalette,
+        },
+        -- Copy all to clipboard #1
+        {
+            key =  "a",
+            mods = user_config["keymod"],
+            action = wezterm.action_callback(function(window, pane)
+                local selected = pane:get_lines_as_text(pane:get_dimensions().scrollback_rows)
+                window:copy_to_clipboard(selected, "Clipboard")
+            end)
+        },
+        -- Copy all to clipboard #2
+        -- {
+        --     key = "a",
+        --     mods = user_config["keymod"],
+        --     action = wezterm.action_callback(function(window, pane)
+        --         local dims = pane:get_dimensions()
+        --         local txt = pane:get_text_from_region(0, dims.scrollback_top, 0, dims.scrollback_top + dims.scrollback_rows)
+        --         window:copy_to_clipboard(txt:match("^%s*(.-)%s*$")) -- trim leading and trailing whitespace
+        --     end)
+        -- },
         -- {
         --     key = "l",
         --     mods = user_config["keymod"],
