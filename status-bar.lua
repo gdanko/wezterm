@@ -23,36 +23,6 @@ function status_bar.update_status_bar(cwd)
     wifi_status.update_json(config)
 
     local cells = {}
-    -- clock
-    if config["status_bar"]["toggles"]["show_clock"] then
-        local date = wezterm.strftime "%a %b %-d %H:%M"
-        table.insert(cells, util.pad_string(2, 2, date))
-    end
-
-    -- battery
-    if config["status_bar"]["toggles"]["show_battery"] then
-        if #wezterm.battery_info() > 0 then
-            for _, b in ipairs(wezterm.battery_info()) do
-                icon, battery_percent = battery_status.get_battery_status(b)
-                bat = icon .. " " .. battery_percent
-                table.insert(cells, util.pad_string(1, 1, bat))
-            end
-        end
-    end
-
-    -- weather
-    if weather_config["enabled"] then
-        if weather_config["api_key"] == nil then
-            table.insert(cells, util.pad_string(2, 2, "Weather: Missing API key"))
-        else
-            weather_data = weather.get_weather(weather_config)
-            if weather_data ~= nil then
-                for _, location_data in ipairs(weather_data) do
-                    table.insert(cells, location_data)
-                end
-            end
-        end
-    end
 
     -- stock quotes
     -- if stock_quotes_config["enabled"] then
@@ -71,18 +41,22 @@ function status_bar.update_status_bar(cwd)
     --     end
     -- end
 
-    -- wifi status
-    if wifi_status_config["enabled"] then
-        wifi_data = wifi_status.get_wifi_status(config)
-        if wifi_data ~= nil then
-            for _, interface_data in ipairs(wifi_data) do
-                table.insert(cells, interface_data)
-            end
-        end
-    end
-
     -- system status
     if system_status_config["enabled"] then
+        if system_status_config["toggles"]["show_network_throughput"] then
+            network_throughput = system_status.get_network_throughput(config)
+            if network_throughput ~= nil then
+                table.insert(cells, network_throughput)
+            end
+        end
+
+        if system_status_config["toggles"]["show_cpu_usage"] then
+            cpu_usage = system_status.get_cpu_usage(config)
+            if cpu_usage ~= nil then
+                table.insert(cells, cpu_usage)
+            end
+        end
+
         if system_status_config["toggles"]["show_load_averages"] then
             load_averages = system_status.get_load_averages(config)
             if load_averages ~= nil then
@@ -93,13 +67,6 @@ function status_bar.update_status_bar(cwd)
             system_uptime = system_status.get_system_uptime(config)
             if system_uptime ~= nil then
                 table.insert(cells, system_uptime)
-            end
-        end
-
-        if system_status_config["toggles"]["show_cpu_usage"] then
-            cpu_usage = system_status.get_cpu_usage(config)
-            if cpu_usage ~= nil then
-                table.insert(cells, cpu_usage)
             end
         end
 
@@ -119,13 +86,50 @@ function status_bar.update_status_bar(cwd)
             end
         end
 
-        if system_status_config["toggles"]["show_network_throughput"] then
-            network_throughput = system_status.get_network_throughput(config)
-            if network_throughput ~= nil then
-                table.insert(cells, network_throughput)
+
+    end
+
+    -- clock
+    if config["status_bar"]["toggles"]["show_clock"] then
+        local date = wezterm.strftime "%a %b %-d %H:%M"
+        table.insert(cells, util.pad_string(2, 2, date))
+    end
+
+    -- battery
+    if config["status_bar"]["toggles"]["show_battery"] then
+        if #wezterm.battery_info() > 0 then
+            for _, b in ipairs(wezterm.battery_info()) do
+                icon, battery_percent = battery_status.get_battery_status(b)
+                bat = icon .. " " .. battery_percent
+                table.insert(cells, util.pad_string(1, 1, bat))
             end
         end
     end
+
+    -- wifi status
+    if wifi_status_config["enabled"] then
+        wifi_data = wifi_status.get_wifi_status(config)
+        if wifi_data ~= nil then
+            for _, interface_data in ipairs(wifi_data) do
+                table.insert(cells, interface_data)
+            end
+        end
+    end
+
+    -- weather
+    if weather_config["enabled"] then
+        if weather_config["api_key"] == nil then
+            table.insert(cells, util.pad_string(2, 2, "Weather: Missing API key"))
+        else
+            weather_data = weather.get_weather(weather_config)
+            if weather_data ~= nil then
+                for _, location_data in ipairs(weather_data) do
+                    table.insert(cells, location_data)
+                end
+            end
+        end
+    end
+    wezterm.log_info(cells)
     return cells
 end
 
