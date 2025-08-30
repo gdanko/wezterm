@@ -18,7 +18,7 @@ status_bar = {}
 
 function status_bar.update_status_bar(cwd)
     -- update the data files as needed
-    stock_quotes.update_json(stock_quotes_config)
+    -- stock_quotes.update_json(stock_quotes_config)
     weather.update_json(weather_config)
     wifi_status.update_json(config)
 
@@ -55,21 +55,21 @@ function status_bar.update_status_bar(cwd)
     end
 
     -- stock quotes
-    if stock_quotes_config["enabled"] then
-        stock_quote_data = stock_quotes.get_stock_quotes(stock_quotes_config)
-        if stock_quote_data ~= nil then
-            for _, stock_quote in ipairs(stock_quote_data) do
-                table.insert(cells, stock_quote)
-            end
-        end
+    -- if stock_quotes_config["enabled"] then
+    --     stock_quote_data = stock_quotes.get_stock_quotes(stock_quotes_config)
+    --     if stock_quote_data ~= nil then
+    --         for _, stock_quote in ipairs(stock_quote_data) do
+    --             table.insert(cells, stock_quote)
+    --         end
+    --     end
 
-        stock_index_data = stock_quotes.get_stock_indexes(stock_quotes_config)
-        if stock_index_data ~= nil then
-            for _, stock_index in ipairs(stock_index_data) do
-                table.insert(cells, stock_index)
-            end
-        end
-    end
+    --     stock_index_data = stock_quotes.get_stock_indexes(stock_quotes_config)
+    --     if stock_index_data ~= nil then
+    --         for _, stock_index in ipairs(stock_index_data) do
+    --             table.insert(cells, stock_index)
+    --         end
+    --     end
+    -- end
 
     -- wifi status
     if wifi_status_config["enabled"] then
