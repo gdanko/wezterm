@@ -129,7 +129,6 @@ function status_bar.update_status_bar(cwd)
             end
         end
     end
-    wezterm.log_info(cells)
     return cells
 end
 
