@@ -47,9 +47,9 @@ function update_json(config)
             network_interface_list = config["status_bar"]["system_status"]["network_interface_list"]
             if network_interface_list ~= nil then
                 for _, ifname in ipairs(network_interface_list) do
-                    success, stdout, stderr = wezterm.run_child_process({"iwconfig", ifname})
+                    success, stdout, stderr = wezterm.run_child_process({"iw", "dev", ifname, "link"})
                     if success then
-                        signal_level = stdout:match("Signal level=-(-%d+) dBm")
+                        signal_level = stdout:match("signal: (-%d+) dBm")
                         if signal_level ~= nil then
                             output["interfaces"][ifname] = tonumber(signal_level)
                         end
