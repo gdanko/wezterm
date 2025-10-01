@@ -3,6 +3,7 @@ local wezterm = require "wezterm"
 local overrides = {}
 
 function override_config(config)
+    config["display"]["color_scheme"]["theme"] = "light"
     config["display"]["color_scheme"]["enable_gradient"] = true
     config["display"]["font_size"] = 12
     config["status_bar"]["stock_quotes"]["symbols"] = {"MSFT", "AAPL"}
