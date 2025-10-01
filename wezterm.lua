@@ -1,14 +1,23 @@
+local wezterm = require "wezterm"
 local color_config = require "color-config"
 local config_parser = require "parse-config"
 local status_bar = require "status-bar"
 local util = require "util.util"
-local wezterm = require "wezterm"
 local username = os.getenv('USER')
 local hostname = wezterm.hostname()
 
 local act = wezterm.action
-
 local user_config = config_parser.get_config()
+
+local theme
+if user_config["display"]["color_scheme"]["theme"] == "dark" then
+    theme = "dark"
+elseif user_config["display"]["color_scheme"]["theme"] == "light" then
+    theme = "dark"
+elseif user_config["display"]["color_scheme"]["theme"] == "auto" then
+    theme = color_config.detect_theme()
+end
+wezterm.log_info(theme)
 
 -- Enable/disable config blocks at the top level
 config_appearance_enabled           = true
@@ -22,6 +31,7 @@ config_tabs_enabled                 = true
 config_test_enabled                 = true
 
 color_scheme_map = color_config.get_color_scheme(
+    theme,
     user_config["display"]["color_scheme"]["scheme_name"],
     user_config["display"]["color_scheme"]["randomize_color_scheme"]
 )
