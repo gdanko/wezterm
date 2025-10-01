@@ -38,6 +38,7 @@ function get_config()
             initial_cols = 80,
             initial_rows = 25,
             color_scheme = {
+                theme = "auto",
                 enable_gradient = false,
                 randomize_color_scheme = false,
                 scheme_name = "Novel"
